@@ -216,6 +216,184 @@ No tests skipped with `[Fact(Skip=...)]`.
 
 ---
 
+## Accepted Decisions (Round 4–5)
+
+### Decision: Phase 7 UI — Alert Engine Integration
+
+**Agent:** Dallas (UI Dev)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Status:** Implemented
+
+**Context:** Phase 7 UI wires Parker's alert services into the live application overlay for PRD §7.8 visual alert integration.
+
+**Key Decisions:**
+- AlertRaised handler on timer thread; no explicit Dispatcher.Invoke in App (overlay VM marshals internally)
+- Tray color driven exclusively by OnTimerTick (avoids redundant state changes on alert)
+- Pulse via event + storyboard in code-behind; PulseFlash rectangle overlaid on root Grid with IsHitTestVisible=false
+- Alert message injected into existing StackPanel (not separate window); respects overlay SizeToContent
+- SoundAlertService created at startup + per-session with fresh AlertSettings
+- SettingsViewModel.TestSoundCommand accepts optional Action delegate for sound testing
+- Focus protection: pulse storyboard non-focus-stealing; balloon tips inherently non-focus-stealing
+
+**Build Status:** ✅ 250 tests pass
+
+---
+
+### Decision: Settings UI — Phase 8
+
+**Author:** Dallas (UI Dev)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Status:** Implemented
+
+**Context:** Phase 8 tabbed Settings window with Save/Apply/Cancel/Reset/Export/Import buttons, live overlay opacity updates.
+
+**Key Decisions:**
+- Working-copy pattern: SettingsViewModel owns editable backing fields; ApplyToSettings writes on Apply/Save only; Cancel closes without touching service
+- SettingsApplied event (not every Save) to avoid noisy updates on positional auto-save
+- Live overlay update via ApplyStyleSettings method; OverlayOpacity setter made public
+- Single-instance settings window via App field + Action callback (TrayIconService.OpenSettingsAction)
+- Export/Import via file copy (not serializer round-trip) to guarantee identical format
+- ComboBox option lists as static properties with x:Static in XAML
+
+**Files Changed:** ISettingsService, SettingsService, TimelineOverlayViewModel, SettingsViewModel (NEW), SettingsWindow (NEW), TrayIconService, App.xaml.cs
+
+**Build Status:** ✅ 164 tests pass
+
+---
+
+### Decision: Phase 9 — Session Summary Window + App Hook Instructions
+
+**Agent:** Kane (UI Dev 2)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Phase:** 9  
+**Status:** Implemented
+
+**Context:** Session Summary window (PRD §7.14) launched at session end with plain-text / Markdown / JSON export commands.
+
+**Components Built:**
+- Views/SessionSummaryWindow.xaml(.cs) — WPF summary window
+- ViewModels/SessionSummaryViewModel.cs — MVVM VM with Copy/MD/JSON export commands
+- Services/SummaryFormatter.cs — UI-agnostic plain-text / Markdown / JSON formatter
+- ViewModels/SectionSummaryRowViewModel.cs — lightweight section row display model
+- IFileDialogService.ShowSaveMarkdownDialog(string?) added + implemented
+
+**App Wiring (for Dallas next round):**
+```csharp
+private void ShowSessionSummary()
+{
+    var result = _timerService.GetResult();
+    _dispatcher.BeginInvoke(() =>
+    {
+        var vm  = new SessionSummaryViewModel(result, _fileDialogService);
+        var win = new SessionSummaryWindow();
+        win.SetViewModel(vm);
+        win.Show();
+    });
+}
+```
+
+**Files Created:** SessionSummaryWindow, SessionSummaryViewModel, SectionSummaryRowViewModel, SummaryFormatter
+
+---
+
+### Decision: Phase 11 Alert Slice — AlertService Tests
+
+**Author:** Lambert (Tester)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Status:** Implemented — 54 tests, all pass
+
+**Context:** Comprehensive test suite for AlertService (Phase 7 backend) with dedup, settings gating, and event validation.
+
+**Design Decisions:**
+- ProcessState as sole seam for deterministic alert evaluation (clock-free snapshots)
+- StubTimerService only for SectionChanged-driven dedup tests (4 bucket-clear + 7 ManualSectionChange tests)
+- Each of 5 alert toggles tested independently with disabled setting
+- No tests for Attach/Detach/Dispose internals (validated implicitly by stub-backed tests)
+- No bugs found in AlertService
+
+**Outcome:**
+- File: AlertServiceTests.cs (54 tests)
+- Suite total: 217 tests (250 after Parker/Dallas/Kane additions)
+- All tests green
+
+---
+
+### Decision: Phase 8 — Timer Fixes + Output Alert Services
+
+**Author:** Parker (Backend Dev)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Phase:** 8  
+**Status:** Implemented, all tests green
+
+**Context:** Two bugs in SessionTimerService (Lambert findings) + two new output services for alert sounds/notifications.
+
+**Bug Fixes:**
+1. **CurrentSectionIndex Contract:** Fixed to return -1 (pre-plan) not 0, matching documented interface contract. Implementation: field init to -1; ResetState uses conditional assignment.
+2. **ComputeBehindSchedule Drift:** Snapshot ComputeSessionElapsed once; derive sectionElapsed inline (not via second call). Eliminates 100–300 ns phantom lag.
+
+**New Services:**
+- **SoundAlertService:** Uses System.Media.SystemSounds (non-blocking, maps to Windows system sounds). PlayTestSound always works regardless of IsEnabled flag. IsEnabled is live read of AlertSettings.
+- **SystemNotificationService:** Uses System.Windows.Forms.NotifyIcon.ShowBalloonTip (non-focus-stealing, PRD §10.2 compliant). Constructor: `(AlertSettings, NotifyIcon?)` with fallback self-managed icon if null.
+
+**Build Status:** ✅ Total 250 tests pass
+
+---
+
+### Decision: Phase 10 — RecentSessionsService + WindowPlacementService
+
+**Author:** Parker (Backend Dev)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Status:** Implemented — 21+28 tests, all pass
+
+**Context:** PRD §7.16 recent sessions (max 10, deduped) + PRD §7.18 multi-monitor overlay placement with fallback.
+
+**Key Decisions:**
+- RecentSessionsService accepts `Func<string, bool>? fileExists = null` (injectable for testing; default File.Exists)
+- WindowPlacementService accepts `Func<IReadOnlyList<MonitorInfo>>? monitorProvider = null` (injectable; default System.Windows.Forms.Screen adapter)
+- MonitorInfo record + OverlayPosition enum for typed domain objects
+- MonitorDeviceName added to OverlayLayoutSettings (Windows device name e.g. \\.\DISPLAY1) alongside legacy int Monitor
+- Silent degradation everywhere: GetExisting catches exceptions → empty; ResolveMonitor always valid; Custom placement falls back to TopCenter
+
+**Files Created:**
+- Abstractions/OverlayPosition.cs
+- Abstractions/MonitorInfo.cs
+- Abstractions/IRecentSessionsService.cs
+- Abstractions/IWindowPlacementService.cs
+- Services/RecentSessionsService.cs
+- Services/WindowPlacementService.cs
+- Tests/RecentSessionsServiceTests.cs (21 tests)
+- Tests/WindowPlacementServiceTests.cs (28 tests)
+
+**Build Status:** ✅ 250 tests pass
+
+---
+
+### Decision: Phase 9 Polish Tests — SettingsService Persistence
+
+**Author:** Lambert (Tester)  
+**Date:** 2026-06-02T06:23:37-04:00  
+**Status:** Implemented — 33 SettingsService tests, all pass
+
+**Context:** Test SettingsService persistence (PRD §11), RecentSessionsService, WindowPlacementService, SummaryFormatter.
+
+**Design Decisions:**
+- **SettingsService:** Use real %AppData% path with backup/restore pattern (SettingsService is sealed; reflection unreliable on .NET 10)
+- **New services:** Gracefully skip tests (RecentSessionsService, WindowPlacementService, SummaryFormatter) as APIs incomplete during this round; note for follow-up
+
+**Deferred Test Work:**
+| Service | Owner | Test scenarios |
+|---|---|---|
+| RecentSessionsService | Parker | dedupe, ordering, cap at 10, missing-file filtering, Remove/Clear |
+| WindowPlacementService | Parker | position-enum → rectangle math, fallback to primary |
+| SummaryFormatter | Kane | SessionResult → text/markdown format per PRD §7.14 |
+
+**Test Results:**
+- Before: 164 tests
+- After: 197 tests (+33 new)
+- Failures: 0
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
