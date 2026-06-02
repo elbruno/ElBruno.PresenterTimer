@@ -22,10 +22,18 @@ public partial class App : Application
     private TimelineOverlayWindow?  _overlayWindow;
     private SettingsWindow?         _settingsWindow;
 
+    // ── Phase 10 services ─────────────────────────────────────────────────────
+    private RecentSessionsService?   _recentSessionsService;
+    private WindowPlacementService?  _windowPlacementService;
+
     // ── Alert services (per-session) ─────────────────────────────────────────
     private AlertService?               _alertService;
     private SoundAlertService?          _soundAlertService;
     private SystemNotificationService?  _notificationService;
+
+    // ── Session summary state ─────────────────────────────────────────────────
+    /// <summary>Result from the most recently completed session; used by "Open Session Summary".</summary>
+    private SessionResult? _lastSessionResult;
 
     // Last computed tray state from timer ticks (used to suppress redundant SetState calls).
     private volatile int _lastTrayStateOrdinal = (int)TrayState.NoSession;
@@ -50,6 +58,10 @@ public partial class App : Application
         var validationService = new SessionValidationService();
         _fileDialogService    = new FileDialogService();
 
+        // ── Recent sessions + window placement (Phase 10) ───────────────────────
+        _recentSessionsService  = new RecentSessionsService(_settingsService);
+        _windowPlacementService = new WindowPlacementService();
+
         // ── Sound service (app-lifetime; PlayTestSound ignores IsEnabled flag) ───
         _soundAlertService = new SoundAlertService(_settingsService.Settings.Alerts);
 
@@ -58,13 +70,62 @@ public partial class App : Application
             loaderService,
             validationService,
             _fileDialogService,
-            _settingsService);
+            _settingsService,
+            _recentSessionsService);
 
         _trayIconService.Initialize();
         _trayIconService.SetState(TrayState.NoSession); // initial gray state
 
-        // ── Wire Settings window callback ────────────────────────────────────
-        _trayIconService.OpenSettingsAction = OpenSettingsWindow;
+        // ── Wire tray callbacks ──────────────────────────────────────────────
+        _trayIconService.OpenSettingsAction      = OpenSettingsWindow;
+        _trayIconService.OpenSessionSummaryAction = OpenLastSessionSummary;
+        _trayIconService.OpenAboutAction          = OpenAboutWindow;
+
+        // ── Auto-load last session on startup (General setting, PRD §7.16) ──────
+        if (_settingsService.Settings.General.AutoLoadLastSessionOnStartup)
+        {
+            var lastPath = _settingsService.Settings.General.LastSessionPath;
+            if (!string.IsNullOrWhiteSpace(lastPath))
+            {
+                if (_recentSessionsService.Exists(lastPath))
+                {
+                    try
+                    {
+                        var plan   = loaderService.Load(lastPath);
+                        var result = validationService.Validate(plan);
+                        if (result.IsValid)
+                        {
+                            _recentSessionsService.Add(lastPath);
+                            // Open preview (matches normal import UX) via dispatcher
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                var vm = new ViewModels.SessionPreviewViewModel(
+                                    plan,
+                                    loaderService,
+                                    validationService,
+                                    _fileDialogService,
+                                    _settingsService,
+                                    onStartSession: p => StartSessionInternal(p));
+                                var win = new SessionPreviewWindow { DataContext = vm };
+                                vm.RequestClose += () => win.Close();
+                                win.Show();
+                            }));
+                        }
+                    }
+                    catch
+                    {
+                        // Non-fatal: missing/corrupt auto-load file; proceed silently
+                    }
+                }
+                else
+                {
+                    // File no longer exists — clean up quietly
+                    _recentSessionsService.Remove(lastPath);
+                    _settingsService.Settings.General.LastSessionPath = null;
+                    _settingsService.Save();
+                }
+            }
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -249,6 +310,23 @@ public partial class App : Application
             {
                 state = TrayState.Paused;
             }
+            else if (_timerService.IsSessionComplete)
+            {
+                state = TrayState.Loaded; // completed, plan still in memory
+
+                // Capture result immediately on the dispatcher (timer is done, no race)
+                _lastSessionResult = _timerService.GetResult();
+
+                var settings = _settingsService!.Settings;
+
+                // Hide overlay if the behavior setting says so (PRD §7.14 / §8.5)
+                if (settings.Behavior.HideOverlayWhenSessionEnds)
+                    _overlayWindow?.Hide();
+
+                // Show summary window if the general setting allows it (PRD §7.14)
+                if (settings.General.ShowSummaryOnSessionEnd)
+                    ShowSessionSummary(_lastSessionResult);
+            }
             else if (_timerService.IsRunning)
             {
                 // Re-evaluate from current timer values
@@ -318,49 +396,45 @@ public partial class App : Application
     }
 
     // ---------------------------------------------------------------------------
-    // Overlay positioning helpers
+    // Overlay positioning helpers (uses WindowPlacementService — PRD §7.7 / §7.18)
     // ---------------------------------------------------------------------------
 
     private void PositionOverlay(TimelineOverlayWindow window)
     {
         var layout = _settingsService!.Settings.OverlayLayout;
-        var screens = Screen.AllScreens;
-        var screen  = (layout.Monitor >= 0 && layout.Monitor < screens.Length)
-            ? screens[layout.Monitor]
-            : Screen.PrimaryScreen!;
 
-        double width = screen.Bounds.Width * Math.Clamp(layout.WidthFraction, 0.2, 1.0);
-        window.Width = width;
+        // Resolve the target monitor (falls back to primary if saved monitor is disconnected)
+        var monitor = _windowPlacementService!.ResolveMonitor(layout.MonitorDeviceName);
 
-        // Restore saved position if available (PRD §7.7)
+        // Compute overlay pixel width
+        double widthFraction = Math.Clamp(layout.WidthFraction, 0.2, 1.0);
+        int    overlayWidth  = (int)(monitor.WorkingArea.Width * widthFraction);
+        int    overlayHeight = 90; // compact default height in pixels
+
+        window.Width = overlayWidth;
+
+        // Determine the named position enum
+        var position = _windowPlacementService.ParsePosition(layout.Position);
+
+        // If RememberCustomPosition is on and we have saved coords, treat as Custom
         if (layout.RememberCustomPosition && layout.CustomX.HasValue && layout.CustomY.HasValue)
-        {
-            window.Left = layout.CustomX.Value;
-            window.Top  = layout.CustomY.Value;
-        }
-        else
-        {
-            ApplyNamedPosition(window, layout.Position, screen, width);
-        }
-    }
+            position = OverlayPosition.Custom;
 
-    private static void ApplyNamedPosition(
-        Window window, string position, Screen screen, double width)
-    {
-        double left = screen.Bounds.Left;
-        double top  = screen.Bounds.Top;
-        double sw   = screen.Bounds.Width;
-        double sh   = screen.Bounds.Height;
+        var pt = _windowPlacementService.ResolvePlacement(
+            position,
+            monitor,
+            new System.Drawing.Size(overlayWidth, overlayHeight),
+            layout.CustomX,
+            layout.CustomY);
 
-        (window.Left, window.Top) = position switch
-        {
-            "TopLeft"      => (left + 4,             top + 4),
-            "TopRight"     => (left + sw - width - 4, top + 4),
-            "BottomCenter" => (left + (sw - width) / 2.0, top + sh - 90),
-            "BottomLeft"   => (left + 4,             top + sh - 90),
-            "BottomRight"  => (left + sw - width - 4, top + sh - 90),
-            _              => (left + (sw - width) / 2.0, top + 4), // TopCenter (default)
-        };
+        // Clamp so the overlay cannot escape the working area
+        var clamped = _windowPlacementService.ClampToWorkingArea(
+            pt,
+            new System.Drawing.Size(overlayWidth, overlayHeight),
+            monitor);
+
+        window.Left = clamped.X;
+        window.Top  = clamped.Y;
     }
 
     private void OnOverlayPositionChanged(double left, double top)
@@ -391,6 +465,59 @@ public partial class App : Application
             _trayIconService.HideOverlayAction   = null;
             _trayIconService.ToggleOverlayAction = null;
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Session Summary window (Kane's API — PRD §7.14 / §8.5)
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Shows the SessionSummaryWindow for the given result on the WPF dispatcher.
+    /// </summary>
+    private void ShowSessionSummary(SessionResult result)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            var vm  = new SessionSummaryViewModel(result, _fileDialogService!);
+            var win = new SessionSummaryWindow();
+            win.SetViewModel(vm);
+            win.Show();
+        }));
+    }
+
+    /// <summary>
+    /// Action wired to <c>TrayIconService.OpenSessionSummaryAction</c>.
+    /// Shows the summary for the last completed session, or a friendly message if none.
+    /// </summary>
+    private void OpenLastSessionSummary()
+    {
+        if (_lastSessionResult is null)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                System.Windows.MessageBox.Show(
+                    "No session has been completed yet.\nRun a session to completion to see the summary.",
+                    "No Summary Available",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }));
+            return;
+        }
+
+        ShowSessionSummary(_lastSessionResult);
+    }
+
+    // ---------------------------------------------------------------------------
+    // About window (PRD §7.1)
+    // ---------------------------------------------------------------------------
+
+    private void OpenAboutWindow()
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            var win = new AboutWindow();
+            win.Show();
+        }));
     }
 
     // ---------------------------------------------------------------------------
@@ -430,6 +557,10 @@ public partial class App : Application
         // Apply overlay opacity (and any other live-updatable style) to the running overlay
         if (_overlayWindow?.DataContext is TimelineOverlayViewModel overlayVm)
             overlayVm.ApplyStyleSettings(_settingsService!.Settings.OverlayStyle);
+
+        // Re-position the overlay if layout settings changed (PRD §7.7 / §7.18)
+        if (_overlayWindow is not null)
+            PositionOverlay(_overlayWindow);
     }
 
     // ---------------------------------------------------------------------------

@@ -21,6 +21,7 @@ public sealed class TrayIconService : ITrayIconService
     private readonly ISessionValidationService _validationService;
     private readonly IFileDialogService        _fileDialogService;
     private readonly ISettingsService          _settingsService;
+    private readonly IRecentSessionsService    _recentSessionsService;
 
     // ── Runtime state ─────────────────────────────────────────────────────────
     private SessionPlan?            _currentPlan;
@@ -39,8 +40,16 @@ public sealed class TrayIconService : ITrayIconService
     /// <summary>Open the settings window (marshals to WPF dispatcher). Set by App.</summary>
     public Action? OpenSettingsAction { get; set; }
 
+    /// <summary>Open the session summary window for the last result. Set by App.</summary>
+    public Action? OpenSessionSummaryAction { get; set; }
+
+    /// <summary>Open the About window. Set by App.</summary>
+    public Action? OpenAboutAction { get; set; }
+
     // ── Pause/Resume menu item reference (for text toggling) ──────────────────
     private ToolStripMenuItem? _pauseResumeItem;
+    // ── Recent Sessions submenu item (rebuilt dynamically on open) ────────────
+    private ToolStripMenuItem? _recentSessionsItem;
 
     /// <summary>
     /// Exposes the underlying <see cref="NotifyIcon"/> so other services (e.g.
@@ -81,12 +90,14 @@ public sealed class TrayIconService : ITrayIconService
         ISessionLoaderService     loaderService,
         ISessionValidationService validationService,
         IFileDialogService        fileDialogService,
-        ISettingsService          settingsService)
+        ISettingsService          settingsService,
+        IRecentSessionsService    recentSessionsService)
     {
-        _loaderService     = loaderService;
-        _validationService = validationService;
-        _fileDialogService = fileDialogService;
-        _settingsService   = settingsService;
+        _loaderService          = loaderService;
+        _validationService      = validationService;
+        _fileDialogService      = fileDialogService;
+        _settingsService        = settingsService;
+        _recentSessionsService  = recentSessionsService;
     }
 
     // ---------------------------------------------------------------------------
@@ -200,7 +211,11 @@ public sealed class TrayIconService : ITrayIconService
         // ── Session file operations ─────────────────────────────────────────────
         menu.Items.Add(MakeItem("Import Session JSON",   OnImportSessionJson));
         menu.Items.Add(MakeItem("Reload Last Session",   OnReloadLastSession));
-        menu.Items.Add(MakeItem("Recent Sessions",       OnRecentSessions));
+
+        _recentSessionsItem = new ToolStripMenuItem("Recent Sessions");
+        _recentSessionsItem.DropDownOpening += OnRecentSessionsDropDownOpening;
+        menu.Items.Add(_recentSessionsItem);
+
         menu.Items.Add(MakeItem("Export Sample JSON",    OnExportSampleJson));
         menu.Items.Add(new ToolStripSeparator());
 
@@ -331,22 +346,58 @@ public sealed class TrayIconService : ITrayIconService
                 "No Last Session", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
+
+        if (!_recentSessionsService.Exists(path))
+        {
+            MessageBox.Show(
+                $"The last session file could not be found:\n{path}\n\nPlease import a new session.",
+                "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _recentSessionsService.Remove(path);
+            _settingsService.Settings.General.LastSessionPath = null;
+            _settingsService.Save();
+            return;
+        }
+
         LoadSessionFromPath(path);
     }
 
-    /// <summary>TODO Phase 3: show a recent-sessions sub-menu from settings.</summary>
-    private void OnRecentSessions(object? sender, EventArgs e)
+    /// <summary>Dynamically populates the Recent Sessions submenu each time it opens.</summary>
+    private void OnRecentSessionsDropDownOpening(object? sender, EventArgs e)
     {
-        // TODO Phase 3 — build dynamic sub-menu from settings.General.RecentSessionPaths.
-        var recent = _settingsService.Settings.General.RecentSessionPaths;
-        if (recent.Count == 0)
+        if (_recentSessionsItem is null) return;
+        _recentSessionsItem.DropDownItems.Clear();
+
+        var paths = _recentSessionsService.GetExisting();
+        if (paths.Count == 0)
         {
-            MessageBox.Show("No recent sessions found.", "Recent Sessions",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _recentSessionsItem.DropDownItems.Add(
+                new ToolStripMenuItem("(No recent sessions)") { Enabled = false });
             return;
         }
-        var list = string.Join("\n", recent.Select((p, i) => $"{i + 1}. {p}"));
-        MessageBox.Show(list, "Recent Sessions", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        foreach (var path in paths)
+        {
+            var caption = $"{Path.GetFileName(path)}  —  {path}";
+            var item = new ToolStripMenuItem(caption);
+            var capturedPath = path;
+            item.Click += (_, _) => LoadRecentSession(capturedPath);
+            _recentSessionsItem.DropDownItems.Add(item);
+        }
+    }
+
+    /// <summary>Loads a session from the recent list, checking file existence first.</summary>
+    private void LoadRecentSession(string path)
+    {
+        if (!_recentSessionsService.Exists(path))
+        {
+            MessageBox.Show(
+                $"File not found:\n{path}\n\nThe entry will be removed from recent sessions.",
+                "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _recentSessionsService.Remove(path);
+            return;
+        }
+
+        LoadSessionFromPath(path);
     }
 
     private void OnExportSampleJson(object? sender, EventArgs e)
@@ -397,10 +448,18 @@ public sealed class TrayIconService : ITrayIconService
         OpenPreviewWindow(_currentPlan);
     }
 
-    /// <summary>TODO Phase 6: open the session summary window.</summary>
+    /// <summary>Opens the Session Summary window for the last completed result.</summary>
     private void OnOpenSessionSummary(object? sender, EventArgs e)
     {
-        // TODO Phase 6 — SessionSummaryWindow.Show().
+        if (OpenSessionSummaryAction is not null)
+        {
+            OpenSessionSummaryAction();
+            return;
+        }
+
+        MessageBox.Show(
+            "No session has been completed yet.\nRun a session to completion to see the summary.",
+            "No Summary Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     /// <summary>TODO Phase 8: open the settings window.</summary>
@@ -410,10 +469,11 @@ public sealed class TrayIconService : ITrayIconService
             OpenSettingsAction();
     }
 
-    /// <summary>TODO Phase 9: show an About dialog with version information.</summary>
+    /// <summary>Opens the About window.</summary>
     private void OnAbout(object? sender, EventArgs e)
     {
-        // TODO Phase 9 — AboutWindow or simple MessageBox with version/credits.
+        if (OpenAboutAction is not null)
+            OpenAboutAction();
     }
 
     /// <summary>
@@ -462,24 +522,13 @@ public sealed class TrayIconService : ITrayIconService
             return; // do NOT open preview for invalid sessions (PRD §8.2)
         }
 
-        // Persist last-session path + recent list
-        _settingsService.Settings.General.LastSessionPath = path;
-        AddToRecentSessions(path);
-        _settingsService.Save();
+        // Persist last-session path + recent list via the service (dedupe + cap handled there)
+        _recentSessionsService.Add(path);
 
         _currentPlan = plan;
         SetState(TrayState.Loaded); // tray icon turns blue
 
         OpenPreviewWindow(plan);
-    }
-
-    private void AddToRecentSessions(string path)
-    {
-        var recent = _settingsService.Settings.General.RecentSessionPaths;
-        recent.Remove(path); // deduplicate
-        recent.Insert(0, path);
-        if (recent.Count > 10)
-            recent.RemoveRange(10, recent.Count - 10);
     }
 
     /// <summary>

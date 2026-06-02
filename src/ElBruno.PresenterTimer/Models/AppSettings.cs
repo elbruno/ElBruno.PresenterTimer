@@ -24,6 +24,9 @@ public sealed class GeneralSettings
     public bool ConfirmBeforeReset { get; set; } = true;
     public bool ConfirmBeforeExitWhileRunning { get; set; } = true;
 
+    /// <summary>Show the Session Summary window automatically when a session ends (PRD §7.14).</summary>
+    public bool ShowSummaryOnSessionEnd { get; set; } = true;
+
     /// <summary>File path of the most recently loaded session JSON (PRD §7.2).</summary>
     public string? LastSessionPath { get; set; }
 

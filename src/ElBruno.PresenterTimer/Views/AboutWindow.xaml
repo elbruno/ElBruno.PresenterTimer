@@ -1,0 +1,51 @@
+<Window x:Class="ElBruno.PresenterTimer.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Session Timeline Overlay"
+        Width="420" Height="280"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="False">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Session Timeline Overlay"
+                   FontSize="20" FontWeight="Bold"
+                   Margin="0,0,0,4"/>
+
+        <TextBlock Grid.Row="1"
+                   x:Name="VersionText"
+                   FontSize="12" Foreground="#666666"
+                   Margin="0,0,0,12"/>
+
+        <TextBlock Grid.Row="2"
+                   TextWrapping="Wrap"
+                   Text="A presenter-focused session timer that shows a configurable overlay on your screen, keeping you on track during talks, workshops, and demos."
+                   Margin="0,0,0,16"/>
+
+        <StackPanel Grid.Row="3" VerticalAlignment="Top">
+            <TextBlock FontSize="12" Foreground="#444444">
+                <Run Text="GitHub: "/>
+                <Hyperlink NavigateUri="https://github.com/elbruno/ElBruno.PresenterTimer"
+                           RequestNavigate="OnHyperlinkNavigate">
+                    github.com/elbruno/ElBruno.PresenterTimer
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+
+        <Button Grid.Row="4"
+                Content="Close"
+                Width="80"
+                HorizontalAlignment="Right"
+                Padding="10,6"
+                Click="OnCloseClick"/>
+    </Grid>
+</Window>
