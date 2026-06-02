@@ -53,7 +53,8 @@
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis"
                                MaxWidth="160"
-                               Margin="0,0,10,0"/>
+                               Margin="0,0,10,0"
+                               AutomationProperties.Name="{Binding SessionTitle, StringFormat='Session: {0}'}"/>
 
                     <!-- Current-section details (centre) -->
                     <WrapPanel Grid.Column="1"
@@ -64,7 +65,9 @@
                                    FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"
                                    Foreground="#64B5F6"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,5,0"/>
+                                   Margin="0,0,5,0"
+                                   AutomationProperties.Name="{Binding CurrentSectionTitle, StringFormat='Current section: {0}'}"
+                                   AutomationProperties.LiveSetting="Polite"/>
 
                         <TextBlock Text="| " Foreground="#666" FontSize="11" VerticalAlignment="Center"/>
 
@@ -76,7 +79,9 @@
 
                         <TextBlock Text="{Binding CurrentSectionRemainingDisplay}"
                                    FontFamily="Segoe UI Mono,Consolas" FontSize="12"
-                                   Foreground="#90CAF9" VerticalAlignment="Center"/>
+                                   Foreground="#90CAF9" VerticalAlignment="Center"
+                                   AutomationProperties.Name="{Binding CurrentSectionRemainingDisplay, StringFormat='Section remaining: {0}'}"
+                                   AutomationProperties.LiveSetting="Polite"/>
 
                         <TextBlock Text="  •  " Foreground="#555" FontSize="11" VerticalAlignment="Center"/>
 
@@ -92,8 +97,10 @@
                                    FontFamily="Segoe UI Mono,Consolas" FontSize="11"
                                    Foreground="#BDBDBD" VerticalAlignment="Center"/>
 
-                        <!-- Overtime badge -->
-                        <Border Margin="6,0,0,0" Background="#B71C1C" CornerRadius="3" Padding="4,1">
+                        <!-- Overtime badge — text cue + color so state is not color-only (PRD §10.4) -->
+                        <Border Margin="6,0,0,0" Background="#B71C1C" CornerRadius="3" Padding="4,1"
+                                AutomationProperties.Name="{Binding OvertimeDisplay, StringFormat='Overtime: {0}'}"
+                                AutomationProperties.LiveSetting="Assertive">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -104,13 +111,19 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <TextBlock Text="{Binding OvertimeDisplay}"
-                                       FontFamily="Segoe UI Mono,Consolas" FontSize="11"
-                                       FontWeight="Bold" Foreground="White"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="OVERTIME "
+                                           FontSize="11" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="{Binding OvertimeDisplay}"
+                                           FontFamily="Segoe UI Mono,Consolas" FontSize="11"
+                                           FontWeight="Bold" Foreground="White"/>
+                            </StackPanel>
                         </Border>
 
                         <!-- Paused badge -->
-                        <Border Margin="6,0,0,0" Background="#795548" CornerRadius="3" Padding="4,1">
+                        <Border Margin="6,0,0,0" Background="#795548" CornerRadius="3" Padding="4,1"
+                                AutomationProperties.Name="Timer paused"
+                                AutomationProperties.LiveSetting="Assertive">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -123,6 +136,24 @@
                             </Border.Style>
                             <TextBlock Text="⏸ PAUSED"
                                        FontSize="10" FontWeight="Bold" Foreground="#FFD54F"/>
+                        </Border>
+
+                        <!-- Warning badge — text cue so state is not color-only (PRD §10.4) -->
+                        <Border Margin="6,0,0,0" Background="#E65100" CornerRadius="3" Padding="4,1"
+                                AutomationProperties.Name="Section warning: time running low"
+                                AutomationProperties.LiveSetting="Assertive">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSectionWarning}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="⚠ WARNING"
+                                       FontSize="10" FontWeight="Bold" Foreground="White"/>
                         </Border>
                     </WrapPanel>
 
@@ -162,7 +193,9 @@
                               ItemsSource="{Binding Sections}"
                               Height="30"
                               Loaded="OnTimelineBarLoaded"
-                              SizeChanged="OnTimelineBarSizeChanged">
+                              SizeChanged="OnTimelineBarSizeChanged"
+                              AutomationProperties.Name="Session timeline bar"
+                              AutomationProperties.HelpText="Each segment represents one section; color and glyph indicate state">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal"/>
@@ -250,6 +283,33 @@
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding State}" Value="Completed">
                                                     <Setter Property="Foreground"  Value="#777777"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <!-- State indicator glyph — non-color cue for Current/Warning/Overtime (PRD §10.4) -->
+                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top"
+                                           FontSize="8" FontWeight="Bold"
+                                           Margin="0,2,3,0"
+                                           IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text"       Value=""/>
+                                            <Setter Property="Foreground" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding State}" Value="Current">
+                                                    <Setter Property="Text"       Value="▶"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Warning">
+                                                    <Setter Property="Text"       Value="⚠"/>
+                                                    <Setter Property="Foreground" Value="#212121"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Overtime">
+                                                    <Setter Property="Text"       Value="!"/>
+                                                    <Setter Property="Foreground" Value="White"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

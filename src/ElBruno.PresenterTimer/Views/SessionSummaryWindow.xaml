@@ -162,7 +162,9 @@
                    Text="{Binding StatusMessage}"
                    Foreground="#27AE60"
                    FontStyle="Italic"
-                   Margin="0,0,0,8"/>
+                   Margin="0,0,0,8"
+                   AutomationProperties.Name="{Binding StatusMessage}"
+                   AutomationProperties.LiveSetting="Polite"/>
 
         <!-- ── Buttons ───────────────────────────────────────────────────── -->
         <StackPanel Grid.Row="3"
@@ -186,6 +188,7 @@
 
             <Button Content="Close"
                     Command="{Binding CloseCommand}"
+                    IsCancel="True"
                     Padding="10,6"
                     AutomationProperties.Name="Close session summary"/>
         </StackPanel>

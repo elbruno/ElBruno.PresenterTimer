@@ -25,7 +25,8 @@
 
             <TextBlock Text="{Binding Title}"
                        FontSize="18" FontWeight="Bold"
-                       TextTrimming="CharacterEllipsis"/>
+                       TextTrimming="CharacterEllipsis"
+                       AutomationProperties.Name="{Binding Title, StringFormat='Session: {0}'}"/>
 
             <TextBlock Text="{Binding Description}"
                        FontSize="12" Foreground="Gray"
@@ -47,7 +48,8 @@
         <ListView Grid.Row="1"
                   ItemsSource="{Binding Sections}"
                   Margin="0,0,0,10"
-                  SelectionMode="Single">
+                  SelectionMode="Single"
+                  AutomationProperties.Name="Session sections list">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="#"        Width="36"  DisplayMemberBinding="{Binding Index}"/>
@@ -63,7 +65,9 @@
                 Margin="0,0,0,14"
                 Padding="10,6"
                 CornerRadius="4"
-                BorderThickness="1">
+                BorderThickness="1"
+                AutomationProperties.Name="{Binding ValidationSummary}"
+                AutomationProperties.LiveSetting="Polite">
             <Border.Style>
                 <Style TargetType="Border">
                     <!-- Default = success green -->
@@ -108,14 +112,17 @@
 
             <Button Content="Cancel"
                     Command="{Binding CancelCommand}"
-                    Margin="0,0,8,0" Padding="10,6"/>
+                    IsCancel="True"
+                    Margin="0,0,8,0" Padding="10,6"
+                    AutomationProperties.Name="Cancel and close preview"/>
 
             <Button Content="▶  Start Session"
                     Command="{Binding StartSessionCommand}"
                     Padding="12,6"
                     FontWeight="Bold"
                     Background="#0078D4"
-                    Foreground="White"/>
+                    Foreground="White"
+                    AutomationProperties.Name="Start session"/>
         </StackPanel>
     </Grid>
 </Window>

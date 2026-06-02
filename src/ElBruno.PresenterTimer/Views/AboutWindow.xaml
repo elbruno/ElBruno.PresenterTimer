@@ -5,7 +5,8 @@
         Width="420" Height="280"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        AutomationProperties.Name="About Session Timeline Overlay">
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -19,12 +20,14 @@
         <TextBlock Grid.Row="0"
                    Text="Session Timeline Overlay"
                    FontSize="20" FontWeight="Bold"
-                   Margin="0,0,0,4"/>
+                   Margin="0,0,0,4"
+                   AutomationProperties.Name="Session Timeline Overlay application"/>
 
         <TextBlock Grid.Row="1"
                    x:Name="VersionText"
                    FontSize="12" Foreground="#666666"
-                   Margin="0,0,0,12"/>
+                   Margin="0,0,0,12"
+                   AutomationProperties.Name="{Binding ElementName=VersionText, Path=Text}"/>
 
         <TextBlock Grid.Row="2"
                    TextWrapping="Wrap"
@@ -46,6 +49,8 @@
                 Width="80"
                 HorizontalAlignment="Right"
                 Padding="10,6"
+                IsCancel="True"
+                AutomationProperties.Name="Close about dialog"
                 Click="OnCloseClick"/>
     </Grid>
 </Window>
