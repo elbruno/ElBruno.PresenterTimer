@@ -1,0 +1,274 @@
+<Window x:Class="ElBruno.PresenterTimer.Views.TimelineOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ElBruno.PresenterTimer.ViewModels"
+        Title="Session Timeline Overlay"
+        WindowStyle="None"
+        Topmost="True"
+        ShowInTaskbar="False"
+        AllowsTransparency="True"
+        Background="Transparent"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        Opacity="{Binding OverlayOpacity}">
+
+    <Window.Resources>
+        <!-- Pulse animation: double white-flash on the PulseFlash overlay rectangle -->
+        <Storyboard x:Key="PulseStoryboard" AutoReverse="False">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PulseFlash"
+                                           Storyboard.TargetProperty="Opacity">
+                <LinearDoubleKeyFrame KeyTime="0:0:0.00" Value="0.38"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="0.08"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.28" Value="0.28"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.50" Value="0.00"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
+
+    <!-- Root Grid lets PulseFlash overlay float over the entire RootBorder -->
+    <Grid>
+
+        <!-- ── Outer draggable shell ──────────────────────────────────────────── -->
+        <Border x:Name="RootBorder"
+                Background="#D01E1E2E"
+                CornerRadius="8"
+                Padding="10,7"
+                MouseLeftButtonDown="OnMouseLeftButtonDown">
+
+            <StackPanel>
+
+                <!-- ── Info line ─────────────────────────────────────────────── -->
+                <Grid Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Session title (left) -->
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding SessionTitle}"
+                               FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                               Foreground="White" Opacity="0.75"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="160"
+                               Margin="0,0,10,0"/>
+
+                    <!-- Current-section details (centre) -->
+                    <WrapPanel Grid.Column="1"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+
+                        <TextBlock Text="{Binding CurrentSectionTitle}"
+                                   FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"
+                                   Foreground="#64B5F6"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,0"/>
+
+                        <TextBlock Text="| " Foreground="#666" FontSize="11" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="{Binding CurrentSectionElapsedDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="12"
+                                   Foreground="White" VerticalAlignment="Center"/>
+
+                        <TextBlock Text=" / " Foreground="#666" FontSize="11" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="{Binding CurrentSectionRemainingDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="12"
+                                   Foreground="#90CAF9" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="  •  " Foreground="#555" FontSize="11" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="Session: " Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="{Binding SessionElapsedDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="11"
+                                   Foreground="#BDBDBD" VerticalAlignment="Center"/>
+
+                        <TextBlock Text=" / " Foreground="#666" FontSize="11" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="{Binding SessionRemainingDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="11"
+                                   Foreground="#BDBDBD" VerticalAlignment="Center"/>
+
+                        <!-- Overtime badge -->
+                        <Border Margin="6,0,0,0" Background="#B71C1C" CornerRadius="3" Padding="4,1">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSessionOvertime}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="{Binding OvertimeDisplay}"
+                                       FontFamily="Segoe UI Mono,Consolas" FontSize="11"
+                                       FontWeight="Bold" Foreground="White"/>
+                        </Border>
+
+                        <!-- Paused badge -->
+                        <Border Margin="6,0,0,0" Background="#795548" CornerRadius="3" Padding="4,1">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="⏸ PAUSED"
+                                       FontSize="10" FontWeight="Bold" Foreground="#FFD54F"/>
+                        </Border>
+                    </WrapPanel>
+
+                    <!-- Next section (right) -->
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Next: " Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding NextSectionTitle}"
+                                   FontFamily="Segoe UI" FontSize="10"
+                                   Foreground="#BDBDBD" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ── Transient alert message (shown for AlertMessageDurationSeconds) ── -->
+                <Border Margin="0,0,0,4" Background="#CC111118" CornerRadius="4" Padding="8,3">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAlertMessageVisible}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding AlertMessage}"
+                               FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold"
+                               Foreground="#FFE082"
+                               HorizontalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </Border>
+
+                <!-- ── Timeline bar ───────────────────────────────────────────── -->
+                <ItemsControl x:Name="TimelineBar"
+                              ItemsSource="{Binding Sections}"
+                              Height="30"
+                              Loaded="OnTimelineBarLoaded"
+                              SizeChanged="OnTimelineBarSizeChanged">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:OverlaySectionViewModel}">
+                            <!-- Each segment; Width is PixelWidth (updated on resize) -->
+                            <Grid Width="{Binding PixelWidth}" Height="30">
+
+                                <!-- Section background — color/opacity/border driven by State -->
+                                <Border CornerRadius="3">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <!-- Default = Upcoming -->
+                                            <Setter Property="Background"       Value="#5A5A6E"/>
+                                            <Setter Property="Opacity"          Value="0.55"/>
+                                            <Setter Property="BorderThickness"  Value="0"/>
+                                            <Setter Property="BorderBrush"      Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding State}" Value="Completed">
+                                                    <Setter Property="Background"       Value="#3A3A4A"/>
+                                                    <Setter Property="Opacity"          Value="0.45"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Current">
+                                                    <Setter Property="Background"       Value="#0078D4"/>
+                                                    <Setter Property="Opacity"          Value="1.0"/>
+                                                    <Setter Property="BorderBrush"      Value="#FFFFFF"/>
+                                                    <Setter Property="BorderThickness"  Value="1.5"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Warning">
+                                                    <Setter Property="Background"       Value="#FFC107"/>
+                                                    <Setter Property="Opacity"          Value="1.0"/>
+                                                    <Setter Property="BorderBrush"      Value="#FFE082"/>
+                                                    <Setter Property="BorderThickness"  Value="1.5"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Overtime">
+                                                    <Setter Property="Background"       Value="#E53935"/>
+                                                    <Setter Property="Opacity"          Value="1.0"/>
+                                                    <Setter Property="BorderBrush"      Value="#EF9A9A"/>
+                                                    <Setter Property="BorderThickness"  Value="1.5"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+
+                                <!-- Progress fill (white overlay for elapsed portion) -->
+                                <Rectangle Width="{Binding ProgressWidth}"
+                                           Height="30"
+                                           Fill="White"
+                                           Opacity="0.20"
+                                           HorizontalAlignment="Left"
+                                           RadiusX="2" RadiusY="2"/>
+
+                                <!-- Section label -->
+                                <TextBlock Text="{Binding Title}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontFamily="Segoe UI"
+                                           FontSize="10"
+                                           TextTrimming="CharacterEllipsis"
+                                           Margin="3,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground"  Value="#BDBDBD"/>
+                                            <Setter Property="FontWeight"  Value="Normal"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding State}" Value="Current">
+                                                    <Setter Property="Foreground"  Value="White"/>
+                                                    <Setter Property="FontWeight"  Value="Bold"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Warning">
+                                                    <Setter Property="Foreground"  Value="#212121"/>
+                                                    <Setter Property="FontWeight"  Value="Bold"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Overtime">
+                                                    <Setter Property="Foreground"  Value="White"/>
+                                                    <Setter Property="FontWeight"  Value="Bold"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Completed">
+                                                    <Setter Property="Foreground"  Value="#777777"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Pulse flash: zero-opacity white overlay that animates on PulseRequested -->
+        <Rectangle x:Name="PulseFlash"
+                   Fill="White"
+                   Opacity="0"
+                   RadiusX="8" RadiusY="8"
+                   IsHitTestVisible="False"/>
+
+    </Grid>
+</Window>

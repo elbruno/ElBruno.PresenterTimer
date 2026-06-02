@@ -1,0 +1,61 @@
+{
+  "title": "Cloud-Native Architecture Patterns",
+  "description": "A 45-minute conference talk on cloud architecture",
+  "metadata": {
+    "author": "Bruno Capuano",
+    "version": "1.0",
+    "createdAt": "2026-06-02",
+    "conference": "Tech Conference 2026"
+  },
+  "sections": [
+    {
+      "title": "Intro & Agenda",
+      "duration": "00:03:00",
+      "notes": "Welcome, introduce topic, outline what's covered",
+      "color": "#4CAF50",
+      "warningAt": "00:01:00"
+    },
+    {
+      "title": "Context & Problem",
+      "duration": "00:07:00",
+      "notes": "Why cloud-native matters, real-world scenarios",
+      "color": "#2196F3",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Microservices Design",
+      "duration": "00:08:00",
+      "notes": "Principles, benefits, challenges",
+      "color": "#FF9800",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Live Demo",
+      "duration": "00:15:00",
+      "notes": "Deploy a sample app to Kubernetes, show scaling",
+      "color": "#9C27B0",
+      "warningAt": "00:03:00"
+    },
+    {
+      "title": "Advanced Patterns",
+      "duration": "00:07:00",
+      "notes": "Resilience, observability, security considerations",
+      "color": "#F44336",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Q&A",
+      "duration": "00:04:00",
+      "notes": "Answer audience questions",
+      "color": "#009688",
+      "warningAt": "00:01:30"
+    },
+    {
+      "title": "Wrap-up",
+      "duration": "00:01:00",
+      "notes": "Thank you, resources and contact info",
+      "color": "#607D8B",
+      "warningAt": "00:00:30"
+    }
+  ]
+}

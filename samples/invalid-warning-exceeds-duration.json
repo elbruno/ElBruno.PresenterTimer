@@ -1,0 +1,27 @@
+{
+  "title": "Invalid Session - Warning Exceeds Duration",
+  "description": "This file is intentionally invalid for testing validation",
+  "sections": [
+    {
+      "title": "Valid Section",
+      "duration": "00:05:00",
+      "notes": "This section is fine",
+      "color": "#4CAF50",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Demo",
+      "duration": "00:05:00",
+      "notes": "This section has an invalid warningAt that exceeds duration",
+      "color": "#2196F3",
+      "warningAt": "00:06:00"
+    },
+    {
+      "title": "Wrap-up",
+      "duration": "00:03:00",
+      "notes": "This section is fine",
+      "color": "#FF9800",
+      "warningAt": "00:01:00"
+    }
+  ]
+}

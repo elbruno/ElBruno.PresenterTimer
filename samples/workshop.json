@@ -1,0 +1,61 @@
+{
+  "title": "Hands-On: Building Your First Microservice",
+  "description": "A comprehensive 60-minute workshop with exercises",
+  "metadata": {
+    "author": "Development Training Team",
+    "version": "2.0",
+    "createdAt": "2026-06-02",
+    "level": "Intermediate"
+  },
+  "sections": [
+    {
+      "title": "Welcome & Setup",
+      "duration": "00:05:00",
+      "notes": "Introductions, verify everyone has tools installed",
+      "color": "#4CAF50",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Theory: Microservices Fundamentals",
+      "duration": "00:10:00",
+      "notes": "Explain concepts, patterns, and best practices",
+      "color": "#2196F3",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Exercise 1: Create the Base Service",
+      "duration": "00:12:00",
+      "notes": "Guided step-by-step to build a basic service",
+      "color": "#FF9800",
+      "warningAt": "00:03:00"
+    },
+    {
+      "title": "Break",
+      "duration": "00:05:00",
+      "notes": "10-minute break for rest and questions",
+      "color": "#E1BEE7",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Exercise 2: Add Database Integration",
+      "duration": "00:12:00",
+      "notes": "Connect service to PostgreSQL, run queries",
+      "color": "#9C27B0",
+      "warningAt": "00:03:00"
+    },
+    {
+      "title": "Exercise 3: Deploy to Container",
+      "duration": "00:10:00",
+      "notes": "Containerize the service, push to registry",
+      "color": "#F44336",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Q&A & Closing",
+      "duration": "00:06:00",
+      "notes": "Review, answer questions, provide resources",
+      "color": "#009688",
+      "warningAt": "00:02:00"
+    }
+  ]
+}

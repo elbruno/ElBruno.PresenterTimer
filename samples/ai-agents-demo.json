@@ -1,0 +1,34 @@
+{
+  "title": "Build Recording - AI Agents Demo",
+  "description": "A structured recording session for a technical video.",
+  "sections": [
+    {
+      "title": "Intro",
+      "duration": "00:03:00",
+      "notes": "Welcome, goal of the video, what the viewer will learn.",
+      "color": "#4CAF50",
+      "warningAt": "00:01:00"
+    },
+    {
+      "title": "Context",
+      "duration": "00:05:00",
+      "notes": "Explain the problem, tools, and architecture.",
+      "color": "#2196F3",
+      "warningAt": "00:01:00"
+    },
+    {
+      "title": "Demo",
+      "duration": "00:15:00",
+      "notes": "Show the app running locally and explain the key parts.",
+      "color": "#9C27B0",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Wrap-up",
+      "duration": "00:04:00",
+      "notes": "Summarize, share links, and close.",
+      "color": "#FF9800",
+      "warningAt": "00:01:00"
+    }
+  ]
+}

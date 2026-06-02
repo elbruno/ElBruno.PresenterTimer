@@ -1,0 +1,21 @@
+{
+  "title": "Quick Demo - 10 Minutes",
+  "description": "A short demo session without extended features",
+  "sections": [
+    {
+      "title": "Intro",
+      "duration": "00:02:00",
+      "notes": "Welcome and overview"
+    },
+    {
+      "title": "Demo",
+      "duration": "00:06:00",
+      "notes": "Live demo of the feature"
+    },
+    {
+      "title": "Wrap-up",
+      "duration": "00:02:00",
+      "notes": "Summary and call to action"
+    }
+  ]
+}

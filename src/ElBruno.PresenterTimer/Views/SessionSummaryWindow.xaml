@@ -1,0 +1,193 @@
+<Window x:Class="ElBruno.PresenterTimer.Views.SessionSummaryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ElBruno.PresenterTimer.ViewModels"
+        Title="Session Summary"
+        Width="820" Height="560"
+        MinWidth="620" MinHeight="420"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="HeaderLabel" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="HeaderValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0,20,0"/>
+        </Style>
+        <Style x:Key="ExportButton" TargetType="Button">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <!-- Session title + summary totals -->
+            <RowDefinition Height="Auto"/>
+            <!-- Section table (stretches) -->
+            <RowDefinition Height="*"/>
+            <!-- Status message -->
+            <RowDefinition Height="Auto"/>
+            <!-- Export + Close buttons -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Header ────────────────────────────────────────────────────── -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+
+            <TextBlock Text="{Binding SessionTitle}"
+                       FontSize="20" FontWeight="Bold"
+                       TextTrimming="CharacterEllipsis"
+                       AutomationProperties.Name="Session title"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+
+                <TextBlock Style="{StaticResource HeaderLabel}" Text="Planned: "/>
+                <TextBlock Style="{StaticResource HeaderValue}"
+                           Text="{Binding PlannedDisplay}"
+                           Foreground="#0078D4"
+                           AutomationProperties.Name="Planned duration"/>
+
+                <TextBlock Style="{StaticResource HeaderLabel}" Text="Actual: "/>
+                <TextBlock Text="{Binding ActualDisplay}"
+                           AutomationProperties.Name="Actual duration">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource HeaderValue}">
+                            <Setter Property="Foreground" Value="#111111"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DifferenceIsPositive}" Value="True">
+                                    <Setter Property="Foreground" Value="#C0392B"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <TextBlock Style="{StaticResource HeaderLabel}" Text="Difference: "/>
+                <TextBlock Text="{Binding DifferenceDisplay}"
+                           FontSize="14" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="4,0,20,0"
+                           AutomationProperties.Name="Session time difference">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#27AE60"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DifferenceIsPositive}" Value="True">
+                                    <Setter Property="Foreground" Value="#C0392B"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DifferenceIsNegative}" Value="False">
+                                    <!-- neutral — no override needed -->
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Extensions pill — hidden when no extensions were applied -->
+                <StackPanel Orientation="Horizontal"
+                            Visibility="{Binding HasTotalExtensions,
+                                         Converter={StaticResource BoolToVis}}">
+                    <TextBlock Style="{StaticResource HeaderLabel}" Text="Extensions: "/>
+                    <TextBlock Style="{StaticResource HeaderValue}"
+                               Text="{Binding TotalExtensionsDisplay}"
+                               Foreground="#E67E22"
+                               AutomationProperties.Name="Total extensions"/>
+                </StackPanel>
+
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ── Section table ─────────────────────────────────────────────── -->
+        <ListView Grid.Row="1"
+                  ItemsSource="{Binding SectionRows}"
+                  Margin="0,0,0,8"
+                  SelectionMode="Single"
+                  AutomationProperties.Name="Section results table">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="#"          Width="34"  DisplayMemberBinding="{Binding Number}"/>
+                    <GridViewColumn Header="Section"    Width="170" DisplayMemberBinding="{Binding Title}"/>
+                    <GridViewColumn Header="Planned"    Width="72"  DisplayMemberBinding="{Binding PlannedDisplay}"/>
+                    <GridViewColumn Header="Actual"     Width="72"  DisplayMemberBinding="{Binding ActualDisplay}"/>
+                    <GridViewColumn Header="Diff"       Width="72">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DifferenceDisplay}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#111111"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DifferenceIsNegative}" Value="True">
+                                                    <Setter Property="Foreground" Value="#27AE60"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding WasOvertime}" Value="True">
+                                                    <Setter Property="Foreground" Value="#C0392B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Overtime"   Width="80"  DisplayMemberBinding="{Binding OvertimeText}"/>
+                    <GridViewColumn Header="Extensions" Width="80"  DisplayMemberBinding="{Binding ExtensionsDisplay}"/>
+                    <GridViewColumn Header="Status"     Width="80"  DisplayMemberBinding="{Binding SkippedText}"/>
+                </GridView>
+            </ListView.View>
+
+            <!-- Dim rows that were never reached -->
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WasVisited}" Value="False">
+                            <Setter Property="Foreground" Value="#999999"/>
+                            <Setter Property="FontStyle"  Value="Italic"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+
+        <!-- ── Status message ────────────────────────────────────────────── -->
+        <TextBlock Grid.Row="2"
+                   Text="{Binding StatusMessage}"
+                   Foreground="#27AE60"
+                   FontStyle="Italic"
+                   Margin="0,0,0,8"/>
+
+        <!-- ── Buttons ───────────────────────────────────────────────────── -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+            <Button Content="📋  Copy to Clipboard"
+                    Command="{Binding CopyToClipboardCommand}"
+                    Style="{StaticResource ExportButton}"
+                    AutomationProperties.Name="Copy summary to clipboard"/>
+
+            <Button Content="⬇  Save as Markdown"
+                    Command="{Binding SaveAsMarkdownCommand}"
+                    Style="{StaticResource ExportButton}"
+                    AutomationProperties.Name="Save summary as Markdown file"/>
+
+            <Button Content="⬇  Save as JSON"
+                    Command="{Binding SaveAsJsonCommand}"
+                    Style="{StaticResource ExportButton}"
+                    AutomationProperties.Name="Save summary as JSON file"/>
+
+            <Button Content="Close"
+                    Command="{Binding CloseCommand}"
+                    Padding="10,6"
+                    AutomationProperties.Name="Close session summary"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,53 @@
+{
+  "title": "The Future of AI - Episode 5",
+  "description": "A 30-minute podcast episode with extended formatting",
+  "metadata": {
+    "author": "Tech Podcast Team",
+    "version": "1.0",
+    "createdAt": "2026-06-02"
+  },
+  "sections": [
+    {
+      "title": "Intro",
+      "duration": "00:03:00",
+      "notes": "Welcome to the show, introduce topic and guests",
+      "color": "#4CAF50",
+      "warningAt": "00:01:00"
+    },
+    {
+      "title": "Guest Intro",
+      "duration": "00:02:00",
+      "notes": "Bio and background of today's guest",
+      "color": "#2196F3",
+      "warningAt": "00:00:45"
+    },
+    {
+      "title": "Topic 1: Current Trends",
+      "duration": "00:08:00",
+      "notes": "Discuss recent AI developments and market trends",
+      "color": "#FF9800",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Topic 2: Deep Dive",
+      "duration": "00:09:00",
+      "notes": "Explore technical challenges and solutions",
+      "color": "#9C27B0",
+      "warningAt": "00:02:00"
+    },
+    {
+      "title": "Q&A",
+      "duration": "00:05:00",
+      "notes": "Answer listener questions",
+      "color": "#F44336",
+      "warningAt": "00:01:30"
+    },
+    {
+      "title": "Outro",
+      "duration": "00:03:00",
+      "notes": "Thank guest, share resources, schedule next episode",
+      "color": "#009688",
+      "warningAt": "00:01:00"
+    }
+  ]
+}
