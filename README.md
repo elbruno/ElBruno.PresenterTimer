@@ -8,6 +8,14 @@ The app runs in the Windows system tray and displays a subtle, always-on-top hor
 
 ---
 
+## Demo Video
+
+Use the MP4 demo at the repository root (smaller and better quality than GIF):
+
+- [PresenterTimer demo video (MP4)](./images/PresenterTimerDemo.mp4)
+
+---
+
 ## Features (MVP)
 
 - **System tray app** — minimal footprint; lives in the Windows notification area with color-coded state icon.
@@ -238,9 +246,10 @@ Windows / App >
   Open Session Preview
   Open Session Plan Editor
   Open Session Summary
-  Settings
-  About
-  Exit
+
+Settings
+About
+Exit
 ```
 
 ### Session Summary
@@ -275,7 +284,7 @@ All settings are stored in `%AppData%\ElBruno.PresenterTimer\settings.json` and 
 
 - Show timeline overlay when session starts
 - Hide overlay when session ends
-- Auto-advance sections
+- Auto-advance sections (always enabled)
 - Keep counting overtime after section/session end
 - Enable global hotkeys (for future implementation)
 - Enable overlay click-through
