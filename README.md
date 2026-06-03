@@ -1,22 +1,12 @@
 # ElBruno.PresenterTimer
 
-[![PresenterTimer demo animation](./images/PresenterTimerDemo.gif)](./images/PresenterTimerDemo.mp4)
+![PresenterTimer demo animation](./images/PresenterTimerDemo.gif)
 
 **ElBruno.PresenterTimer** is a Windows desktop application (Session Timeline Overlay) for presenters, content creators, trainers, and speakers who need to stay on track during recordings, demos, conferences, or workshops — without constantly switching windows or checking a separate clock.
 
 The app runs in the Windows system tray and displays a subtle, always-on-top horizontal timeline overlay that shows your full session plan divided into sections. As time passes, the current section is highlighted, completed sections are visually differentiated, and configurable alerts fire when a section is almost over or the session goes into overtime.
 
 **Built with:** .NET 10 · WPF · MVVM · System Tray Integration · JSON-driven session plans · Settings persistence to `%AppData%`
-
----
-
-## Demo Video
-
-The animated preview is embedded at the top of this README. Use the MP4 for full quality:
-
-- [PresenterTimer demo video (MP4)](./images/PresenterTimerDemo.mp4)
-
----
 
 ## Features (MVP)
 
