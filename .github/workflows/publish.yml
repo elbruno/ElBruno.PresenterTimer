@@ -43,7 +43,7 @@ jobs:
         run: dotnet test ElBruno.PresenterTimer.sln --configuration Release --no-build
 
       - name: Pack NuGet package
-        run: dotnet pack src\ElBruno.PresenterTimer\ElBruno.PresenterTimer.csproj --configuration Release --no-build --output artifacts
+        run: dotnet pack src\ElBruno.PresenterTimer.Tool\ElBruno.PresenterTimer.Tool.csproj --configuration Release --no-build --output artifacts
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4

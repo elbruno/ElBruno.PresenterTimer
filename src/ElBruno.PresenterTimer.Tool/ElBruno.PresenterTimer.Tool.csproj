@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>presentertimer</ToolCommandName>
+    <PackageId>ElBruno.PresenterTimer</PackageId>
+    <Version>0.1.1</Version>
+    <Description>Windows tray timeline app for presenters to stay on track during talks, demos, and recordings.</Description>
+    <Authors>Bruno Capuano</Authors>
+    <PackageTags>presenter;timer;tray;wpf;windows</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/elbruno/ElBruno.PresenterTimer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/elbruno/ElBruno.PresenterTimer.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <Target Name="PrepareDesktopAppForToolPack" BeforeTargets="Pack">
+    <PropertyGroup>
+      <DesktopOutputDir>$(MSBuildProjectDirectory)\..\ElBruno.PresenterTimer\bin\$(Configuration)\net10.0-windows\</DesktopOutputDir>
+      <ToolAppDir>$(OutputPath)app\</ToolAppDir>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(ToolAppDir)" />
+
+    <ItemGroup>
+      <DesktopAppFiles Include="$(DesktopOutputDir)**\*.*"
+                       Exclude="$(DesktopOutputDir)ref\**;$(DesktopOutputDir)publish\**" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DesktopAppFiles)"
+          DestinationFiles="@(DesktopAppFiles->'$(ToolAppDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <None Include="$(ToolAppDir)**\*.*"
+            Pack="true"
+            PackagePath="tools/$(TargetFramework)/any/app/%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

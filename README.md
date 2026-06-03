@@ -414,7 +414,7 @@ Packaging and publishing run in `.github/workflows/dotnet-tool-publish.yml`.
 - CI path (PR/push): restore, build, test, and `dotnet pack` for the tool package.
 - Release path (tag `v*` or manual dispatch with `publish=true`): publishes to NuGet.org using **trusted publisher** (OIDC), no API key required.
 
-Before first release, configure NuGet trusted publishing for this GitHub repository/environment (`nuget`).
+Before first release, configure NuGet trusted publishing for this GitHub repository/environment (`release`).
 
 ---
 
