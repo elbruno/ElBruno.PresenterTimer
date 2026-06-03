@@ -69,4 +69,4 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Publish to NuGet.org (trusted publisher)
-        run: dotnet nuget push "artifacts\*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
