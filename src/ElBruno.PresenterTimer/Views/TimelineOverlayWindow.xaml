@@ -43,6 +43,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Session title (left) -->
@@ -167,6 +168,42 @@
                                    FontFamily="Segoe UI" FontSize="10"
                                    Foreground="#BDBDBD" VerticalAlignment="Center"/>
                     </StackPanel>
+
+                    <StackPanel Grid.Column="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="8,0,0,0">
+                        <Button Width="18"
+                                Height="18"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Content="—"
+                                ToolTip="Minimize overlay"
+                                Background="#2238445A"
+                                Foreground="#D8E0F2"
+                                BorderBrush="#336C7B93"
+                                BorderThickness="1"
+                                Cursor="Hand"
+                                Click="OnMinimizeButtonClick"
+                                AutomationProperties.Name="Minimize overlay"/>
+                        <Button Width="18"
+                                Height="18"
+                                Padding="0"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Content="×"
+                                ToolTip="Hide overlay"
+                                Background="#2238445A"
+                                Foreground="#D8E0F2"
+                                BorderBrush="#336C7B93"
+                                BorderThickness="1"
+                                Cursor="Hand"
+                                Click="OnCloseButtonClick"
+                                AutomationProperties.Name="Hide overlay"/>
+                    </StackPanel>
                 </Grid>
 
                 <!-- ── Transient alert message (shown for AlertMessageDurationSeconds) ── -->
@@ -252,7 +289,7 @@
                                 <Rectangle Width="{Binding ProgressWidth}"
                                            Height="30"
                                            Fill="White"
-                                           Opacity="0.20"
+                                           Opacity="{Binding DataContext.ProgressFillOpacity, RelativeSource={RelativeSource AncestorType=Window}}"
                                            HorizontalAlignment="Left"
                                            RadiusX="2" RadiusY="2"/>
 

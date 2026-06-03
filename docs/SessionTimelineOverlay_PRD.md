@@ -199,30 +199,36 @@ The systray context menu should include:
 ```text
 Session Timeline Overlay
 
-Start Session
-Pause Session / Resume Session
-Reset Session
+Session >
+  Start Session
+  Pause Session / Resume Session
+  Reset Session
 
-Next Section
-Previous Section
-Restart Current Section
-Extend Current Section
-  +1 minute
-  +5 minutes
+Sections >
+  Next Section
+  Previous Section
+  Restart Current Section
+  Extend Current Section >
+    +1 minute
+    +5 minutes
 
-Import Session JSON
-Reload Last Session
-Recent Sessions
-Export Sample JSON
+Plan / JSON >
+  Import Session JSON
+  Reload Last Session
+  Recent Sessions
+  Export Sample JSON
 
-Show Timeline Overlay
-Hide Timeline Overlay
+Overlay >
+  Show Timeline Overlay
+  Hide Timeline Overlay
 
-Open Session Preview
-Open Session Summary
-Settings
-About
-Exit
+Windows / App >
+  Open Session Preview
+  Open Session Plan Editor
+  Open Session Summary
+  Settings
+  About
+  Exit
 ```
 
 ### Start Session Behavior

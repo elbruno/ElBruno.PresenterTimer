@@ -63,6 +63,7 @@ public sealed class OverlayStyleSettings
     public int CompletedSectionOpacity { get; set; } = 45;
     public int UpcomingSectionOpacity { get; set; } = 55;
     public int CurrentSectionOpacity { get; set; } = 100;
+    public int ProgressFillOpacity { get; set; } = 20;
     public int OverlayOpacity { get; set; } = 85;
 
     public string FontFamily { get; set; } = "Segoe UI";

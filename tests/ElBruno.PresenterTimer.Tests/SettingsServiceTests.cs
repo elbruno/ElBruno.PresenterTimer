@@ -174,6 +174,13 @@ public sealed class SettingsServiceTests : IDisposable
     }
 
     [Fact]
+    public void AppSettings_Defaults_OverlayStyle_ProgressFillOpacity_Is20()
+    {
+        var settings = new AppSettings();
+        Assert.Equal(20, settings.OverlayStyle.ProgressFillOpacity);
+    }
+
+    [Fact]
     public void AppSettings_Defaults_Hotkeys_Enabled_IsFalse()
     {
         // PRD §12: global hotkeys default disabled to avoid conflicts.
@@ -300,6 +307,22 @@ public sealed class SettingsServiceTests : IDisposable
         reader.Load();
 
         Assert.Equal(opacity, reader.Settings.OverlayStyle.OverlayOpacity);
+    }
+
+    [Fact]
+    public void SaveThenLoad_RoundTrips_ProgressFillOpacity()
+    {
+        const int opacity = 35;
+
+        var writer = new SettingsService();
+        writer.Load();
+        writer.Settings.OverlayStyle.ProgressFillOpacity = opacity;
+        writer.Save();
+
+        var reader = new SettingsService();
+        reader.Load();
+
+        Assert.Equal(opacity, reader.Settings.OverlayStyle.ProgressFillOpacity);
     }
 
     [Fact]

@@ -1,0 +1,21 @@
+{
+  "title": "Demo Mode Session",
+  "description": "Ultra-short sample for live demos and quick verification.",
+  "sections": [
+    {
+      "title": "Intro",
+      "duration": "00:00:05",
+      "notes": "Quick opening."
+    },
+    {
+      "title": "Feature Peek",
+      "duration": "00:00:06",
+      "notes": "Show key UI behavior."
+    },
+    {
+      "title": "Wrap-up",
+      "duration": "00:00:08",
+      "notes": "Close and reset."
+    }
+  ]
+}

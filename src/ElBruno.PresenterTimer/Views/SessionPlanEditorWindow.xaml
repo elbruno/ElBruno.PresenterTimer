@@ -1,0 +1,183 @@
+<Window x:Class="ElBruno.PresenterTimer.Views.SessionPlanEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Session Plan Editor"
+        Width="980" Height="700"
+        MinWidth="860" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.Row="0" Header="Session Details" Margin="0,0,0,12">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Title" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="1" Grid.Column="0"
+                         Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,10,8"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Description" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Metadata Author" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="3" Grid.Column="0"
+                         Text="{Binding MetadataAuthor, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,10,0"/>
+
+                <StackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Orientation="Horizontal">
+                    <StackPanel Width="180">
+                        <TextBlock Text="Metadata Version" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding MetadataVersion, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                    </StackPanel>
+                    <StackPanel Width="180">
+                        <TextBlock Text="Metadata CreatedAt" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding MetadataCreatedAt, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Grid.Column="0" Header="Sections">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ListBox Grid.Row="0"
+                             ItemsSource="{Binding Sections}"
+                             SelectedItem="{Binding SelectedSection}"
+                             Margin="0,0,0,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="2">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding DurationText}" Foreground="Gray"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <WrapPanel Grid.Row="1">
+                        <Button Content="Add" Command="{Binding AddSectionCommand}" Margin="0,0,6,0" Padding="12,4"/>
+                        <Button Content="Remove" Command="{Binding RemoveSelectedSectionCommand}" Margin="0,0,6,0" Padding="12,4"/>
+                        <Button Content="Move Up" Command="{Binding MoveSectionUpCommand}" Margin="0,0,6,0" Padding="12,4"/>
+                        <Button Content="Move Down" Command="{Binding MoveSectionDownCommand}" Padding="12,4"/>
+                    </WrapPanel>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Column="2" Header="Selected Section">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Section Title" Margin="0,0,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding SelectedSection.Title, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,10,8"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Duration (HH:mm:ss)" Margin="0,0,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding SelectedSection.DurationText, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Color (#RGB or #RRGGBB)" Margin="0,0,0,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="0"
+                             Text="{Binding SelectedSection.Color, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,10,8"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="WarningAt (HH:mm:ss)" Margin="0,0,0,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1"
+                             Text="{Binding SelectedSection.WarningAtText, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,8"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Text="Notes" Margin="0,0,0,4"/>
+                    <TextBox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                             Text="{Binding SelectedSection.Notes, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalScrollBarVisibility="Auto"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Margin="0,12,0,12"
+                Padding="10,6"
+                CornerRadius="4"
+                BorderThickness="1">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="#DFF0D8"/>
+                    <Setter Property="BorderBrush" Value="#3C763D"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasValidationIssues}" Value="True">
+                            <Setter Property="Background" Value="#FCF8E3"/>
+                            <Setter Property="BorderBrush" Value="#8A6D3B"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ValidationSummary}" TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="#3C763D"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasValidationIssues}" Value="True">
+                                <Setter Property="Foreground" Value="#8A6D3B"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Border>
+
+        <DockPanel Grid.Row="3">
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="Gray"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                <Button Content="New Plan" Command="{Binding NewPlanCommand}" Margin="0,0,8,0" Padding="10,6"/>
+                <Button Content="Open JSON" Command="{Binding OpenJsonCommand}" Margin="0,0,8,0" Padding="10,6"/>
+                <Button Content="Save JSON" Command="{Binding SaveJsonCommand}" Margin="0,0,8,0" Padding="10,6"
+                        Background="#0078D4" Foreground="White" FontWeight="Bold"/>
+                <Button Content="Close" Command="{Binding CloseCommand}" Padding="10,6"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

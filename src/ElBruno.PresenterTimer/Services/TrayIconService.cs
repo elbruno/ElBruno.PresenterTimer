@@ -43,6 +43,9 @@ public sealed class TrayIconService : ITrayIconService
     /// <summary>Open the session summary window for the last result. Set by App.</summary>
     public Action? OpenSessionSummaryAction { get; set; }
 
+    /// <summary>Open the Session Plan Editor window. Set by App.</summary>
+    public Action? OpenSessionPlanEditorAction { get; set; }
+
     /// <summary>Open the About window. Set by App.</summary>
     public Action? OpenAboutAction { get; set; }
 
@@ -190,49 +193,46 @@ public sealed class TrayIconService : ITrayIconService
         menu.Items.Add(header);
         menu.Items.Add(new ToolStripSeparator());
 
-        // ── Session controls ────────────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Start Session",   OnStartSession));
+        var sessionMenu = new ToolStripMenuItem("Session");
+        sessionMenu.DropDownItems.Add(MakeItem("Start Session", OnStartSession));
         _pauseResumeItem = MakeItem("Pause Session", OnPauseSession);
-        menu.Items.Add(_pauseResumeItem);
-        menu.Items.Add(MakeItem("Reset Session",   OnResetSession));
-        menu.Items.Add(new ToolStripSeparator());
+        sessionMenu.DropDownItems.Add(_pauseResumeItem);
+        sessionMenu.DropDownItems.Add(MakeItem("Reset Session", OnResetSession));
+        menu.Items.Add(sessionMenu);
 
-        // ── Section navigation ──────────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Next Section",             OnNextSection));
-        menu.Items.Add(MakeItem("Previous Section",         OnPreviousSection));
-        menu.Items.Add(MakeItem("Restart Current Section",  OnRestartCurrentSection));
-
+        var sectionMenu = new ToolStripMenuItem("Sections");
+        sectionMenu.DropDownItems.Add(MakeItem("Next Section", OnNextSection));
+        sectionMenu.DropDownItems.Add(MakeItem("Previous Section", OnPreviousSection));
+        sectionMenu.DropDownItems.Add(MakeItem("Restart Current Section", OnRestartCurrentSection));
         var extend = new ToolStripMenuItem("Extend Current Section");
         extend.DropDownItems.Add(MakeItem("+1 minute",  OnExtendOneMinute));
         extend.DropDownItems.Add(MakeItem("+5 minutes", OnExtendFiveMinutes));
-        menu.Items.Add(extend);
-        menu.Items.Add(new ToolStripSeparator());
+        sectionMenu.DropDownItems.Add(extend);
+        menu.Items.Add(sectionMenu);
 
-        // ── Session file operations ─────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Import Session JSON",   OnImportSessionJson));
-        menu.Items.Add(MakeItem("Reload Last Session",   OnReloadLastSession));
-
+        var planMenu = new ToolStripMenuItem("Plan / JSON");
+        planMenu.DropDownItems.Add(MakeItem("Import Session JSON", OnImportSessionJson));
+        planMenu.DropDownItems.Add(MakeItem("Reload Last Session", OnReloadLastSession));
         _recentSessionsItem = new ToolStripMenuItem("Recent Sessions");
         _recentSessionsItem.DropDownOpening += OnRecentSessionsDropDownOpening;
-        menu.Items.Add(_recentSessionsItem);
+        planMenu.DropDownItems.Add(_recentSessionsItem);
+        planMenu.DropDownItems.Add(MakeItem("Export Sample JSON", OnExportSampleJson));
+        menu.Items.Add(planMenu);
 
-        menu.Items.Add(MakeItem("Export Sample JSON",    OnExportSampleJson));
-        menu.Items.Add(new ToolStripSeparator());
+        var overlayMenu = new ToolStripMenuItem("Overlay");
+        overlayMenu.DropDownItems.Add(MakeItem("Show Timeline Overlay", OnShowTimeline));
+        overlayMenu.DropDownItems.Add(MakeItem("Hide Timeline Overlay", OnHideTimeline));
+        menu.Items.Add(overlayMenu);
 
-        // ── Overlay visibility ──────────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Show Timeline Overlay", OnShowTimeline));
-        menu.Items.Add(MakeItem("Hide Timeline Overlay", OnHideTimeline));
-        menu.Items.Add(new ToolStripSeparator());
-
-        // ── Windows ────────────────────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Open Session Preview", OnOpenSessionPreview));
-        menu.Items.Add(MakeItem("Open Session Summary", OnOpenSessionSummary));
-        menu.Items.Add(MakeItem("Settings",             OnOpenSettings));
-        menu.Items.Add(MakeItem("About",                OnAbout));
-        menu.Items.Add(new ToolStripSeparator());
-
-        // ── Exit ───────────────────────────────────────────────────────────────
-        menu.Items.Add(MakeItem("Exit", OnExit));
+        var windowsAppMenu = new ToolStripMenuItem("Windows / App");
+        windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Preview", OnOpenSessionPreview));
+        windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Plan Editor", OnOpenSessionPlanEditor));
+        windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Summary", OnOpenSessionSummary));
+        windowsAppMenu.DropDownItems.Add(MakeItem("Settings", OnOpenSettings));
+        windowsAppMenu.DropDownItems.Add(MakeItem("About", OnAbout));
+        windowsAppMenu.DropDownItems.Add(new ToolStripSeparator());
+        windowsAppMenu.DropDownItems.Add(MakeItem("Exit", OnExit));
+        menu.Items.Add(windowsAppMenu);
 
         return menu;
     }
@@ -446,6 +446,12 @@ public sealed class TrayIconService : ITrayIconService
             return;
         }
         OpenPreviewWindow(_currentPlan);
+    }
+
+    /// <summary>Opens the Session Plan Editor window.</summary>
+    private void OnOpenSessionPlanEditor(object? sender, EventArgs e)
+    {
+        OpenSessionPlanEditorAction?.Invoke();
     }
 
     /// <summary>Opens the Session Summary window for the last completed result.</summary>

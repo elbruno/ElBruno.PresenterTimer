@@ -12,7 +12,15 @@ This directory contains sample JSON session files for testing the Session Timeli
 - **Features**: No colors, no metadata, no per-section warnings
 - **Use Case**: Testing minimal session structure and basic timeline rendering
 
-### 2. `podcast.json`
+### 2. `demo-mode.json`
+- **Purpose**: Ultra-fast demo mode run
+- **Total Duration**: 19 seconds
+- **Format**: MVP (minimal schema)
+- **Sections**: 3 (Intro, Feature Peek, Wrap-up)
+- **Features**: Very short sections (5s, 6s, 8s) for quick demos
+- **Use Case**: Fast end-to-end verification during presentations, recordings, and UI demos
+
+### 3. `podcast.json`
 - **Purpose**: Podcast episode with extended features
 - **Total Duration**: ~30 minutes
 - **Format**: Extended (with metadata, colors, warningAt)
@@ -20,7 +28,7 @@ This directory contains sample JSON session files for testing the Session Timeli
 - **Features**: Full metadata, per-section colors, per-section warnings
 - **Use Case**: Testing extended schema with multiple colored sections and warning thresholds
 
-### 3. `conference-talk.json`
+### 4. `conference-talk.json`
 - **Purpose**: Technical conference presentation
 - **Total Duration**: ~45 minutes
 - **Format**: Extended
@@ -28,7 +36,7 @@ This directory contains sample JSON session files for testing the Session Timeli
 - **Features**: Extended metadata with conference info, colors, warnings
 - **Use Case**: Testing longer sessions with live demo sections and audience Q&A
 
-### 4. `workshop.json`
+### 5. `workshop.json`
 - **Purpose**: Hands-on training workshop with exercises
 - **Total Duration**: ~60 minutes
 - **Format**: Extended
@@ -36,7 +44,7 @@ This directory contains sample JSON session files for testing the Session Timeli
 - **Features**: Multiple exercises, break session, extended metadata with level field
 - **Use Case**: Testing full-length workshop format with multiple interactive sections
 
-### 5. `ai-agents-demo.json`
+### 6. `ai-agents-demo.json`
 - **Purpose**: Reference example from PRD §17
 - **Total Duration**: ~27 minutes
 - **Format**: Extended
@@ -44,7 +52,7 @@ This directory contains sample JSON session files for testing the Session Timeli
 - **Features**: Matches exact PRD example specification with colors and warnings
 - **Use Case**: Testing against documented specification; verifies correct parsing of reference example
 
-### 6. `invalid-warning-exceeds-duration.json` ⚠️ **INTENTIONALLY INVALID**
+### 7. `invalid-warning-exceeds-duration.json` ⚠️ **INTENTIONALLY INVALID**
 - **Purpose**: Validation test file
 - **Total Duration**: ~13 minutes (if valid)
 - **Format**: Syntactically valid JSON, semantically invalid
@@ -56,14 +64,14 @@ This directory contains sample JSON session files for testing the Session Timeli
 
 These files collectively exercise the following validation rules from PRD §7.4:
 
-- ✅ Valid JSON syntax (files 1-5)
-- ✅ Valid JSON syntax with semantic error (file 6)
+- ✅ Valid JSON syntax (files 1-6)
+- ✅ Valid JSON syntax with semantic error (file 7)
 - ✅ Required fields present (title, sections, section title, duration)
 - ✅ Duration format validation (HH:mm:ss)
 - ✅ Section duration > 0
 - ✅ Valid hex color format (in extended format files)
-- ✅ WarningAt < section duration (files 1-5)
-- ❌ WarningAt > section duration (file 6 - intentional violation)
+- ✅ WarningAt < section duration (files 1-6 where applicable)
+- ❌ WarningAt > section duration (file 7 - intentional violation)
 
 ## Usage
 
@@ -71,9 +79,9 @@ To test with these samples:
 
 1. Launch the application
 2. Select "Import Session JSON" from the tray menu
-3. Choose any of the valid files (1-5)
+3. Choose any of the valid files (1-6)
 4. Preview the session and verify it renders correctly
-5. Test file 6 to verify validation catches the warningAt violation
+5. Test file 7 to verify validation catches the warningAt violation
 
 ## Format Reference
 

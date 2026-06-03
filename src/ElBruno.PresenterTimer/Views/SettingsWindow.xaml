@@ -203,6 +203,19 @@
 
                         <StackPanel Margin="0,0,0,6">
                             <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Progress fill opacity:" Width="200" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ProgressFillOpacity}" Width="36" VerticalAlignment="Center" Foreground="#0078D4" FontWeight="Bold"/>
+                                <TextBlock Text="%" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Slider Minimum="0" Maximum="100" Value="{Binding ProgressFillOpacity}"
+                                    Width="380" HorizontalAlignment="Left" Margin="0,2,0,0"
+                                    IsSnapToTickEnabled="True" TickFrequency="5"
+                                    AutomationProperties.Name="Progress fill opacity"
+                                    AutomationProperties.HelpText="Set opacity for section elapsed progress fill"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Upcoming section opacity:" Width="200" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding UpcomingSectionOpacity}" Width="36" VerticalAlignment="Center" Foreground="#0078D4" FontWeight="Bold"/>
                                 <TextBlock Text="%" VerticalAlignment="Center"/>
@@ -271,11 +284,13 @@
                                       ItemsSource="{Binding Source={x:Static vm:SettingsViewModel.PositionOptions}}"
                                       SelectedItem="{Binding Position}" MaxWidth="220" HorizontalAlignment="Left"/>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Monitor index:" VerticalAlignment="Center"/>
-                            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
-                                <TextBox Text="{Binding Monitor}" Width="60"/>
-                                <TextBlock Text=" (0 = primary)" Foreground="Gray" FontSize="11" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                            </StackPanel>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Monitor:" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="4" Grid.Column="1"
+                                      ItemsSource="{Binding AvailableMonitors}"
+                                      DisplayMemberPath="DisplayName"
+                                      SelectedValuePath="DeviceName"
+                                      SelectedValue="{Binding SelectedMonitorDeviceName, UpdateSourceTrigger=PropertyChanged}"
+                                      MaxWidth="280" HorizontalAlignment="Left"/>
 
                             <TextBlock Grid.Row="6" Grid.Column="0" Text="Height:" VerticalAlignment="Center"/>
                             <ComboBox Grid.Row="6" Grid.Column="1"

@@ -80,6 +80,7 @@ public sealed class SettingsServicePathTests : IDisposable
         writer.Settings.OverlayStyle.Theme               = "Dark";
         writer.Settings.OverlayStyle.AccentColor         = "#FF5722";
         writer.Settings.OverlayStyle.OverlayOpacity      = 72;
+        writer.Settings.OverlayStyle.ProgressFillOpacity = 28;
         writer.Settings.OverlayStyle.FontSize             = "Large";
 
         writer.Settings.OverlayLayout.Position           = "BottomCenter";
@@ -113,6 +114,7 @@ public sealed class SettingsServicePathTests : IDisposable
         Assert.Equal("Dark",    reader.Settings.OverlayStyle.Theme);
         Assert.Equal("#FF5722", reader.Settings.OverlayStyle.AccentColor);
         Assert.Equal(72,        reader.Settings.OverlayStyle.OverlayOpacity);
+        Assert.Equal(28,        reader.Settings.OverlayStyle.ProgressFillOpacity);
         Assert.Equal("Large",   reader.Settings.OverlayStyle.FontSize);
 
         // OverlayLayout
@@ -195,6 +197,7 @@ public sealed class SettingsServicePathTests : IDisposable
         Assert.False(svc.Settings.Alerts.EnableSoundAlerts);
         Assert.Equal("TopCenter", svc.Settings.OverlayLayout.Position);
         Assert.Equal("System",    svc.Settings.OverlayStyle.Theme);
+        Assert.Equal(20,          svc.Settings.OverlayStyle.ProgressFillOpacity);
         Assert.False(svc.Settings.Hotkeys.Enabled);
     }
 

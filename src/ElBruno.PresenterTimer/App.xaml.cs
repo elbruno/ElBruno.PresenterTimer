@@ -21,6 +21,7 @@ public partial class App : Application
     private SessionTimerService?    _timerService;
     private TimelineOverlayWindow?  _overlayWindow;
     private SettingsWindow?         _settingsWindow;
+    private SessionPlanEditorWindow? _sessionPlanEditorWindow;
 
     // ── Phase 10 services ─────────────────────────────────────────────────────
     private RecentSessionsService?   _recentSessionsService;
@@ -78,6 +79,7 @@ public partial class App : Application
 
         // ── Wire tray callbacks ──────────────────────────────────────────────
         _trayIconService.OpenSettingsAction      = OpenSettingsWindow;
+        _trayIconService.OpenSessionPlanEditorAction = OpenSessionPlanEditorWindow;
         _trayIconService.OpenSessionSummaryAction = OpenLastSessionSummary;
         _trayIconService.OpenAboutAction          = OpenAboutWindow;
 
@@ -196,15 +198,9 @@ public partial class App : Application
         PositionOverlay(_overlayWindow);
 
         // Wire tray overlay-visibility callbacks
-        _trayIconService.ShowOverlayAction   = () => Dispatcher.BeginInvoke(() => _overlayWindow?.Show());
-        _trayIconService.HideOverlayAction   = () => Dispatcher.BeginInvoke(() => _overlayWindow?.Hide());
-        _trayIconService.ToggleOverlayAction = () => Dispatcher.BeginInvoke(() =>
-        {
-            if (_overlayWindow?.IsVisible == true)
-                _overlayWindow.Hide();
-            else
-                _overlayWindow?.Show();
-        });
+        _trayIconService.ShowOverlayAction   = () => Dispatcher.BeginInvoke(ShowOverlayWindow);
+        _trayIconService.HideOverlayAction   = () => Dispatcher.BeginInvoke(HideOverlayWindow);
+        _trayIconService.ToggleOverlayAction = () => Dispatcher.BeginInvoke(ToggleOverlayWindow);
 
         // Show overlay automatically if the behavior setting is on (PRD §7.1 / §8.3)
         if (settings.Behavior.ShowOverlayWhenSessionStarts)
@@ -404,7 +400,7 @@ public partial class App : Application
         var layout = _settingsService!.Settings.OverlayLayout;
 
         // Resolve the target monitor (falls back to primary if saved monitor is disconnected)
-        var monitor = _windowPlacementService!.ResolveMonitor(layout.MonitorDeviceName);
+        var monitor = _windowPlacementService!.ResolveMonitor(layout.MonitorDeviceName, layout.Monitor);
 
         // Compute overlay pixel width
         double widthFraction = Math.Clamp(layout.WidthFraction, 0.2, 1.0);
@@ -455,7 +451,7 @@ public partial class App : Application
         if (_overlayWindow.DataContext is IDisposable disposable)
             disposable.Dispose();
 
-        _overlayWindow.Close();
+        _overlayWindow.ClosePermanently();
         _overlayWindow = null;
 
         // Clear overlay callbacks on the tray service
@@ -543,12 +539,35 @@ public partial class App : Application
             var vm = new SettingsViewModel(
                 _settingsService!,
                 _fileDialogService!,
+                _windowPlacementService!,
                 playTestSound: soundService.PlayTestSound);
 
             _settingsWindow = new SettingsWindow { DataContext = vm };
             vm.RequestClose += () => _settingsWindow?.Close();
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
             _settingsWindow.Show();
+        }));
+    }
+
+    private void OpenSessionPlanEditorWindow()
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_sessionPlanEditorWindow is { IsLoaded: true })
+            {
+                _sessionPlanEditorWindow.Activate();
+                return;
+            }
+
+            var vm = new SessionPlanEditorViewModel(
+                new SessionLoaderService(),
+                new SessionValidationService(),
+                _fileDialogService!);
+
+            _sessionPlanEditorWindow = new SessionPlanEditorWindow { DataContext = vm };
+            vm.RequestClose += () => _sessionPlanEditorWindow?.Close();
+            _sessionPlanEditorWindow.Closed += (_, _) => _sessionPlanEditorWindow = null;
+            _sessionPlanEditorWindow.Show();
         }));
     }
 
@@ -571,5 +590,39 @@ public partial class App : Application
     {
         if (string.IsNullOrWhiteSpace(value)) return fallback;
         return TimeSpan.TryParseExact(value, @"hh\:mm\:ss", null, out var ts) ? ts : fallback;
+    }
+
+    private void ShowOverlayWindow()
+    {
+        if (_overlayWindow is null) return;
+
+        if (!_overlayWindow.IsVisible)
+            _overlayWindow.Show();
+
+        if (_overlayWindow.WindowState == WindowState.Minimized)
+            _overlayWindow.WindowState = WindowState.Normal;
+
+        _overlayWindow.ShowInTaskbar = false;
+        _overlayWindow.Activate();
+    }
+
+    private void HideOverlayWindow()
+    {
+        if (_overlayWindow is null) return;
+        _overlayWindow.ShowInTaskbar = false;
+        _overlayWindow.Hide();
+    }
+
+    private void ToggleOverlayWindow()
+    {
+        if (_overlayWindow is null) return;
+
+        if (!_overlayWindow.IsVisible || _overlayWindow.WindowState == WindowState.Minimized)
+        {
+            ShowOverlayWindow();
+            return;
+        }
+
+        HideOverlayWindow();
     }
 }

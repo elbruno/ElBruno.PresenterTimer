@@ -33,6 +33,7 @@ public sealed class TimelineOverlayViewModel : ViewModelBase, IDisposable
     private bool   _isPaused;
     private bool   _isRunning;
     private double _overlayOpacity                = 0.85;
+    private double _progressFillOpacity           = 0.20;
 
     // Alert message (transient, clears after AlertMessageDurationSeconds)
     private string _alertMessage        = string.Empty;
@@ -65,6 +66,7 @@ public sealed class TimelineOverlayViewModel : ViewModelBase, IDisposable
 
         _totalDurationSeconds = plan.Sections.Sum(s => s.Duration.TotalSeconds);
         _overlayOpacity       = Math.Clamp(settings.OverlayStyle.OverlayOpacity / 100.0, 0.1, 1.0);
+        _progressFillOpacity  = Math.Clamp(settings.OverlayStyle.ProgressFillOpacity / 100.0, 0.0, 1.0);
 
         SessionTitle        = plan.Title;
         CurrentSectionTitle = plan.Sections.Count > 0 ? plan.Sections[0].Title : string.Empty;
@@ -165,6 +167,12 @@ public sealed class TimelineOverlayViewModel : ViewModelBase, IDisposable
         set => SetProperty(ref _overlayOpacity, value);
     }
 
+    public double ProgressFillOpacity
+    {
+        get => _progressFillOpacity;
+        set => SetProperty(ref _progressFillOpacity, value);
+    }
+
     /// <summary>
     /// Transient alert message shown for <c>AlertSettings.AlertMessageDurationSeconds</c>
     /// then cleared.  E.g. "⚠️ 1:00 left in &quot;Demo&quot;".
@@ -206,7 +214,8 @@ public sealed class TimelineOverlayViewModel : ViewModelBase, IDisposable
     public void ApplyStyleSettings(OverlayStyleSettings style)
         => _dispatcher.BeginInvoke(() =>
         {
-            OverlayOpacity = Math.Clamp(style.OverlayOpacity / 100.0, 0.1, 1.0);
+            OverlayOpacity      = Math.Clamp(style.OverlayOpacity / 100.0, 0.1, 1.0);
+            ProgressFillOpacity = Math.Clamp(style.ProgressFillOpacity / 100.0, 0.0, 1.0);
         });
 
     /// <summary>

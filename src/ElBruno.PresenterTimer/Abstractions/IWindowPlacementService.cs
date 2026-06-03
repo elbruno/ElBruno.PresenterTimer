@@ -28,11 +28,12 @@ public interface IWindowPlacementService
     /// Resolves the monitor to use for the overlay:
     /// <list type="bullet">
     ///   <item>If <paramref name="savedDeviceName"/> is non-null and the monitor is connected, that monitor is returned.</item>
+    ///   <item>Otherwise, if <paramref name="fallbackMonitorIndex"/> points to a currently connected monitor, that monitor is returned.</item>
     ///   <item>Otherwise, falls back to the primary monitor (PRD §7.18).</item>
     /// </list>
     /// Never throws.
     /// </summary>
-    MonitorInfo ResolveMonitor(string? savedDeviceName);
+    MonitorInfo ResolveMonitor(string? savedDeviceName, int fallbackMonitorIndex = 0);
 
     /// <summary>
     /// Computes the top-left pixel coordinate for an overlay of size <paramref name="overlaySize"/>

@@ -47,9 +47,9 @@ public sealed class WindowPlacementService : IWindowPlacementService
     }
 
     /// <inheritdoc/>
-    public MonitorInfo ResolveMonitor(string? savedDeviceName)
+    public MonitorInfo ResolveMonitor(string? savedDeviceName, int fallbackMonitorIndex = 0)
     {
-        // Try to find the saved device first; fall back to primary (PRD §7.18)
+        // Try to find the saved device first.
         if (!string.IsNullOrWhiteSpace(savedDeviceName))
         {
             var found = FindMonitorByDeviceName(savedDeviceName);
@@ -57,6 +57,12 @@ public sealed class WindowPlacementService : IWindowPlacementService
                 return found;
         }
 
+        // Backward compatibility: use legacy monitor index if available.
+        var monitors = _monitorProvider();
+        if (fallbackMonitorIndex >= 0 && fallbackMonitorIndex < monitors.Count)
+            return monitors[fallbackMonitorIndex];
+
+        // Last resort: primary monitor.
         return GetPrimaryMonitor();
     }
 

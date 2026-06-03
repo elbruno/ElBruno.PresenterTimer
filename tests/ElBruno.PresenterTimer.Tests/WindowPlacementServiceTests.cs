@@ -152,6 +152,37 @@ public class WindowPlacementServiceTests
         Assert.True(monitor.IsPrimary);
     }
 
+    [Fact]
+    public void ResolveMonitor_NullDeviceName_UsesFallbackMonitorIndex()
+    {
+        var svc = MakeService(Primary, Secondary);
+
+        var monitor = svc.ResolveMonitor(null, fallbackMonitorIndex: 1);
+
+        Assert.Equal(@"\\.\DISPLAY2", monitor.DeviceName);
+    }
+
+    [Fact]
+    public void ResolveMonitor_DisconnectedDevice_UsesFallbackMonitorIndex()
+    {
+        var svc = MakeService(Primary, Secondary);
+
+        var monitor = svc.ResolveMonitor(@"\\.\DISPLAY99", fallbackMonitorIndex: 1);
+
+        Assert.Equal(@"\\.\DISPLAY2", monitor.DeviceName);
+    }
+
+    [Fact]
+    public void ResolveMonitor_InvalidFallbackIndex_FallsBackToPrimary()
+    {
+        var svc = MakeService(Secondary, Primary);
+
+        var monitor = svc.ResolveMonitor(null, fallbackMonitorIndex: 99);
+
+        Assert.Equal(@"\\.\DISPLAY1", monitor.DeviceName);
+        Assert.True(monitor.IsPrimary);
+    }
+
     // ── ResolvePlacement ─────────────────────────────────────────────────────
 
     // Working area: Rectangle(0, 0, 1920, 1040)  with 40 px taskbar

@@ -1,4 +1,5 @@
 using System.Windows;
+using System.ComponentModel;
 using System.Windows.Media.Animation;
 using ElBruno.PresenterTimer.ViewModels;
 
@@ -17,12 +18,14 @@ namespace ElBruno.PresenterTimer.Views;
 public partial class TimelineOverlayWindow : Window
 {
     private Storyboard? _pulseStoryboard;
+    private bool _allowClose;
 
     public TimelineOverlayWindow()
     {
         InitializeComponent();
         LocationChanged += OnLocationChanged;
         DataContextChanged += OnDataContextChanged;
+        Closing += OnClosing;
 
         Loaded += (_, _) =>
         {
@@ -75,5 +78,31 @@ public partial class TimelineOverlayWindow : Window
     {
         if (DataContext is TimelineOverlayViewModel vm)
             vm.SavePosition(Left, Top);
+    }
+
+    private void OnMinimizeButtonClick(object sender, RoutedEventArgs e)
+    {
+        ShowInTaskbar = true;
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OnCloseButtonClick(object sender, RoutedEventArgs e)
+    {
+        Hide();
+    }
+
+    private void OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (_allowClose)
+            return;
+
+        e.Cancel = true;
+        Hide();
+    }
+
+    public void ClosePermanently()
+    {
+        _allowClose = true;
+        Close();
     }
 }

@@ -19,6 +19,7 @@ The app runs in the Windows system tray and displays a subtle, always-on-top hor
 - **Timer controls** — start, pause, resume, reset, next/previous section, restart current section, and extend by ±1 or ±5 minutes.
 - **Configurable alerts** — section warning, section end, session end, and overtime alerts with optional audio and Windows notifications.
 - **Session preview** — review the full plan before starting.
+- **In-app Session Plan Editor** — create and edit session title, metadata, and sections (duration, notes, color, warning) with live validation and JSON save/open.
 - **Session summary** — post-session recap with planned vs. actual times per section; export to clipboard, Markdown, or JSON.
 - **Recent sessions** — quick reload of up to 10 previously used session files.
 - **Settings persistence** — all preferences saved to `%AppData%\ElBruno.PresenterTimer\settings.json` (theme, colors, opacity, overlay position, alert behavior, hotkey enablement).
@@ -64,6 +65,38 @@ The application will launch in the Windows system tray.
 ```bash
 dotnet test ElBruno.PresenterTimer.sln
 ```
+
+---
+
+## Install as .NET Tool (Windows)
+
+Install globally from NuGet:
+
+```bash
+dotnet tool install --global ElBruno.PresenterTimer
+```
+
+Run the app:
+
+```bash
+presentertimer
+```
+
+The installed command starts the tray app directly.
+
+To update later:
+
+```bash
+dotnet tool update --global ElBruno.PresenterTimer
+```
+
+---
+
+## End-User Documentation
+
+Looking for day-to-day usage guidance (install/run, tray/overlay controls, settings, plan editor, troubleshooting)?
+
+- 👉 [User Manual](docs/user-manual.md)
 
 ---
 
@@ -140,6 +173,7 @@ Define your session in a `.json` file:
 Sample session JSON files are included in the `samples/` folder:
 
 - **short-demo.json** — 10-minute demo (Intro, Demo, Wrap-up)
+- **demo-mode.json** — ultra-short demo-mode sample (3 sections, 5–8 seconds each)
 - **podcast.json** — 30-minute podcast format with 6 sections and extended metadata
 - **conference-talk.json** — 45-minute conference talk with live demo and Q&A
 - **workshop.json** — 60-minute workshop with theory, exercises, and breaks
@@ -177,30 +211,36 @@ Right-click the tray icon to access:
 ```
 Session Timeline Overlay
 
-Start Session
-Pause / Resume
-Reset Session
+Session >
+  Start Session
+  Pause / Resume
+  Reset Session
 
-Next Section
-Previous Section
-Restart Current Section
-Extend Current Section
-  +1 minute
-  +5 minutes
+Sections >
+  Next Section
+  Previous Section
+  Restart Current Section
+  Extend Current Section >
+    +1 minute
+    +5 minutes
 
-Import Session JSON
-Reload Last Session
-Recent Sessions (list of up to 10)
-Export Sample JSON
+Plan / JSON >
+  Import Session JSON
+  Reload Last Session
+  Recent Sessions (up to 10)
+  Export Sample JSON
 
-Show Timeline Overlay
-Hide Timeline Overlay
+Overlay >
+  Show Timeline Overlay
+  Hide Timeline Overlay
 
-Open Session Preview
-Open Session Summary
-Settings
-About
-Exit
+Windows / App >
+  Open Session Preview
+  Open Session Plan Editor
+  Open Session Summary
+  Settings
+  About
+  Exit
 ```
 
 ### Session Summary
@@ -367,6 +407,17 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
+## Publishing (Maintainers)
+
+Packaging and publishing run in `.github/workflows/dotnet-tool-publish.yml`.
+
+- CI path (PR/push): restore, build, test, and `dotnet pack` for the tool package.
+- Release path (tag `v*` or manual dispatch with `publish=true`): publishes to NuGet.org using **trusted publisher** (OIDC), no API key required.
+
+Before first release, configure NuGet trusted publishing for this GitHub repository/environment (`nuget`).
+
+---
+
 ## Author
 
 Built by **Bruno Capuano** ([@elbruno](https://github.com/elbruno)) — El Bruno.
@@ -375,5 +426,6 @@ Built by **Bruno Capuano** ([@elbruno](https://github.com/elbruno)) — El Bruno
 
 ## See Also
 
+- [User Manual](docs/user-manual.md) — End-user guide for installation, controls, settings, and troubleshooting.
 - [Product Requirements](docs/SessionTimelineOverlay_PRD.md) — Full specifications, 17 sections, MVP scope, and roadmap.
 - [Agent Histories](.squad/agents/) — Development record of each team member's contributions.

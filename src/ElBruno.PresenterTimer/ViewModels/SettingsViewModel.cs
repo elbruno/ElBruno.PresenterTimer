@@ -14,6 +14,7 @@ public sealed class SettingsViewModel : ViewModelBase
 {
     private readonly ISettingsService    _settingsService;
     private readonly IFileDialogService  _fileDialogService;
+    private readonly IWindowPlacementService _windowPlacementService;
 
     // ── RequestClose ──────────────────────────────────────────────────────────
     /// <summary>Raised to tell the view to close itself.</summary>
@@ -178,6 +179,13 @@ public sealed class SettingsViewModel : ViewModelBase
         set => SetProperty(ref _currentSectionOpacity, Math.Clamp(value, 0, 100));
     }
 
+    private int _progressFillOpacity = 20;
+    public int ProgressFillOpacity
+    {
+        get => _progressFillOpacity;
+        set => SetProperty(ref _progressFillOpacity, Math.Clamp(value, 0, 100));
+    }
+
     private int _overlayOpacity = 85;
     public int OverlayOpacity
     {
@@ -270,7 +278,47 @@ public sealed class SettingsViewModel : ViewModelBase
     public int Monitor
     {
         get => _monitor;
-        set => SetProperty(ref _monitor, Math.Max(0, value));
+        set
+        {
+            var clamped = Math.Max(0, value);
+            if (!SetProperty(ref _monitor, clamped))
+                return;
+
+            if (clamped < AvailableMonitors.Count)
+                SelectedMonitorDeviceName = AvailableMonitors[clamped].DeviceName;
+        }
+    }
+
+    public sealed class MonitorSelectionOption
+    {
+        public required string DeviceName { get; init; }
+        public required string DisplayName { get; init; }
+    }
+
+    private IReadOnlyList<MonitorSelectionOption> _availableMonitors = [];
+    public IReadOnlyList<MonitorSelectionOption> AvailableMonitors
+    {
+        get => _availableMonitors;
+        private set => SetProperty(ref _availableMonitors, value);
+    }
+
+    private string? _selectedMonitorDeviceName;
+    public string? SelectedMonitorDeviceName
+    {
+        get => _selectedMonitorDeviceName;
+        set
+        {
+            if (!SetProperty(ref _selectedMonitorDeviceName, value))
+                return;
+
+            var selectedIndex = AvailableMonitors
+                .Select((m, index) => new { m.DeviceName, index })
+                .FirstOrDefault(x => string.Equals(x.DeviceName, value, StringComparison.OrdinalIgnoreCase))
+                ?.index;
+
+            if (selectedIndex.HasValue)
+                Monitor = selectedIndex.Value;
+        }
     }
 
     private double _widthFraction = 0.80;
@@ -474,11 +522,12 @@ public sealed class SettingsViewModel : ViewModelBase
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public SettingsViewModel(ISettingsService settingsService, IFileDialogService fileDialogService,
+    public SettingsViewModel(ISettingsService settingsService, IFileDialogService fileDialogService, IWindowPlacementService windowPlacementService,
         Action? playTestSound = null)
     {
-        _settingsService   = settingsService;
-        _fileDialogService = fileDialogService;
+        _settingsService        = settingsService;
+        _fileDialogService      = fileDialogService;
+        _windowPlacementService = windowPlacementService;
 
         LoadFromSettings(_settingsService.Settings);
 
@@ -602,6 +651,7 @@ public sealed class SettingsViewModel : ViewModelBase
         CompletedSectionOpacity  = s.OverlayStyle.CompletedSectionOpacity;
         UpcomingSectionOpacity   = s.OverlayStyle.UpcomingSectionOpacity;
         CurrentSectionOpacity    = s.OverlayStyle.CurrentSectionOpacity;
+        ProgressFillOpacity      = s.OverlayStyle.ProgressFillOpacity;
         OverlayOpacity           = s.OverlayStyle.OverlayOpacity;
         FontFamily               = s.OverlayStyle.FontFamily;
         FontSize                 = s.OverlayStyle.FontSize;
@@ -617,6 +667,7 @@ public sealed class SettingsViewModel : ViewModelBase
         OverlayMode           = s.OverlayLayout.OverlayMode;
         Position              = s.OverlayLayout.Position;
         Monitor               = s.OverlayLayout.Monitor;
+        LoadMonitorSelection(s.OverlayLayout.MonitorDeviceName, s.OverlayLayout.Monitor);
         WidthFraction         = s.OverlayLayout.WidthFraction;
         OverlayHeight         = s.OverlayLayout.Height;
         RememberCustomPosition = s.OverlayLayout.RememberCustomPosition;
@@ -675,6 +726,7 @@ public sealed class SettingsViewModel : ViewModelBase
         s.OverlayStyle.CompletedSectionOpacity = CompletedSectionOpacity;
         s.OverlayStyle.UpcomingSectionOpacity  = UpcomingSectionOpacity;
         s.OverlayStyle.CurrentSectionOpacity   = CurrentSectionOpacity;
+        s.OverlayStyle.ProgressFillOpacity     = ProgressFillOpacity;
         s.OverlayStyle.OverlayOpacity          = OverlayOpacity;
         s.OverlayStyle.FontFamily              = FontFamily;
         s.OverlayStyle.FontSize                = FontSize;
@@ -690,6 +742,7 @@ public sealed class SettingsViewModel : ViewModelBase
         s.OverlayLayout.OverlayMode            = OverlayMode;
         s.OverlayLayout.Position               = Position;
         s.OverlayLayout.Monitor                = Monitor;
+        s.OverlayLayout.MonitorDeviceName      = ResolveMonitorDeviceNameForSave();
         s.OverlayLayout.WidthFraction          = WidthFraction;
         s.OverlayLayout.Height                 = OverlayHeight;
         s.OverlayLayout.RememberCustomPosition = RememberCustomPosition;
@@ -717,5 +770,50 @@ public sealed class SettingsViewModel : ViewModelBase
         s.Hotkeys.ResetSession            = ResetSessionHotkey;
         s.Hotkeys.ShowHideOverlay         = ShowHideOverlayHotkey;
         s.Hotkeys.ExtendSectionOneMinute  = ExtendSectionOneMinuteHotkey;
+    }
+
+    private void LoadMonitorSelection(string? savedDeviceName, int legacyMonitorIndex)
+    {
+        var monitorSnapshot = _windowPlacementService.GetAvailableMonitors();
+        AvailableMonitors = monitorSnapshot
+            .Select((monitor, index) => new MonitorSelectionOption
+            {
+                DeviceName = monitor.DeviceName,
+                DisplayName = monitor.IsPrimary
+                    ? $"{index}: {monitor.DeviceName} (Primary)"
+                    : $"{index}: {monitor.DeviceName}"
+            })
+            .ToList();
+
+        string? resolvedDeviceName = null;
+
+        if (!string.IsNullOrWhiteSpace(savedDeviceName))
+        {
+            resolvedDeviceName = AvailableMonitors
+                .FirstOrDefault(m => string.Equals(m.DeviceName, savedDeviceName, StringComparison.OrdinalIgnoreCase))
+                ?.DeviceName;
+        }
+
+        if (resolvedDeviceName is null && legacyMonitorIndex >= 0 && legacyMonitorIndex < AvailableMonitors.Count)
+            resolvedDeviceName = AvailableMonitors[legacyMonitorIndex].DeviceName;
+
+        if (resolvedDeviceName is null)
+        {
+            resolvedDeviceName = monitorSnapshot.FirstOrDefault(m => m.IsPrimary)?.DeviceName
+                               ?? AvailableMonitors.FirstOrDefault()?.DeviceName;
+        }
+
+        SelectedMonitorDeviceName = resolvedDeviceName;
+    }
+
+    private string? ResolveMonitorDeviceNameForSave()
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedMonitorDeviceName))
+            return SelectedMonitorDeviceName;
+
+        if (Monitor >= 0 && Monitor < AvailableMonitors.Count)
+            return AvailableMonitors[Monitor].DeviceName;
+
+        return null;
     }
 }
