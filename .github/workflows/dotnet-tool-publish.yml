@@ -38,7 +38,7 @@ jobs:
       - name: Test
         run: dotnet test ElBruno.PresenterTimer.sln --configuration Release --no-build
 
-      - name: Pack dotnet tool
+      - name: Pack NuGet package
         run: dotnet pack src\ElBruno.PresenterTimer\ElBruno.PresenterTimer.csproj --configuration Release --no-build --output artifacts
 
       - name: Upload package artifacts

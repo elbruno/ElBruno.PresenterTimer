@@ -9,8 +9,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>ElBruno.PresenterTimer</RootNamespace>
     <AssemblyName>ElBruno.PresenterTimer</AssemblyName>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>presentertimer</ToolCommandName>
     <PackageId>ElBruno.PresenterTimer</PackageId>
     <Version>0.1.0</Version>
     <Description>Windows tray timeline app for presenters to stay on track during talks, demos, and recordings.</Description>
