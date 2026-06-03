@@ -228,11 +228,10 @@ public sealed class TrayIconService : ITrayIconService
         windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Preview", OnOpenSessionPreview));
         windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Plan Editor", OnOpenSessionPlanEditor));
         windowsAppMenu.DropDownItems.Add(MakeItem("Open Session Summary", OnOpenSessionSummary));
-        windowsAppMenu.DropDownItems.Add(MakeItem("Settings", OnOpenSettings));
-        windowsAppMenu.DropDownItems.Add(MakeItem("About", OnAbout));
-        windowsAppMenu.DropDownItems.Add(new ToolStripSeparator());
-        windowsAppMenu.DropDownItems.Add(MakeItem("Exit", OnExit));
         menu.Items.Add(windowsAppMenu);
+        menu.Items.Add(MakeItem("Settings", OnOpenSettings));
+        menu.Items.Add(MakeItem("About", OnAbout));
+        menu.Items.Add(MakeItem("Exit", OnExit));
 
         return menu;
     }

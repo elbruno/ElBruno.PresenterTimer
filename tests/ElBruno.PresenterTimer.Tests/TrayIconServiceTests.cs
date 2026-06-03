@@ -23,7 +23,7 @@ public class TrayIconServiceTests
                 .ToList();
 
             Assert.Equal(
-                ["Session", "Sections", "Plan / JSON", "Overlay", "Windows / App"],
+                ["Session", "Sections", "Plan / JSON", "Overlay", "Windows / App", "Settings", "About", "Exit"],
                 topLevelLabels);
         }
         finally
@@ -97,7 +97,7 @@ public class TrayIconServiceTests
     }
 
     [Fact]
-    public void WindowsAppMenu_ClickingItemsInvokesHooks()
+    public void RootAndWindowsAppMenu_ClickingItemsInvokesHooks()
     {
         var sut = CreateSut();
         try
@@ -112,9 +112,9 @@ public class TrayIconServiceTests
             sut.OpenSessionSummaryAction = () => summaryCalls++;
             sut.OpenAboutAction = () => aboutCalls++;
 
-            FindMenuItem(sut, "Windows / App", "Settings").PerformClick();
             FindMenuItem(sut, "Windows / App", "Open Session Summary").PerformClick();
-            FindMenuItem(sut, "Windows / App", "About").PerformClick();
+            FindRootMenuItem(sut, "Settings").PerformClick();
+            FindRootMenuItem(sut, "About").PerformClick();
 
             Assert.Equal(1, settingsCalls);
             Assert.Equal(1, summaryCalls);
@@ -193,6 +193,12 @@ public class TrayIconServiceTests
         var menu = sut.NotifyIcon!.ContextMenuStrip!;
         var parentItem = menu.Items.OfType<ToolStripMenuItem>().Single(i => i.Text == parent);
         return parentItem.DropDownItems.OfType<ToolStripMenuItem>().Single(i => i.Text == child);
+    }
+
+    private static ToolStripMenuItem FindRootMenuItem(TrayIconService sut, string text)
+    {
+        var menu = sut.NotifyIcon!.ContextMenuStrip!;
+        return menu.Items.OfType<ToolStripMenuItem>().Single(i => i.Text == text);
     }
 
     private static void InvokeRecentSessionsRefresh(TrayIconService sut, ToolStripMenuItem recentMenu)

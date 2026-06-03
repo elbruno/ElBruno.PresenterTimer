@@ -169,7 +169,8 @@ public partial class App : Application
 
         // ── Create timer ─────────────────────────────────────────────────────
         _timerService = new SessionTimerService();
-        _timerService.AutoAdvanceSections = settings.Behavior.AutoAdvanceSections;
+        // Always guide the presenter to the current topic by advancing sections automatically.
+        _timerService.AutoAdvanceSections = true;
         _timerService.LoadPlan(plan);
 
         _timerService.Tick         += OnTimerTick;
