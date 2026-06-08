@@ -198,6 +198,7 @@ public sealed class TrayIconService : ITrayIconService
         _pauseResumeItem = MakeItem("Pause Session", OnPauseSession);
         sessionMenu.DropDownItems.Add(_pauseResumeItem);
         sessionMenu.DropDownItems.Add(MakeItem("Reset Session", OnResetSession));
+        sessionMenu.DropDownItems.Add(MakeItem("Stop Session", OnStopSession));
         menu.Items.Add(sessionMenu);
 
         var sectionMenu = new ToolStripMenuItem("Sections");
@@ -306,6 +307,15 @@ public sealed class TrayIconService : ITrayIconService
 
         _timerService.Reset();
         SetState(TrayState.Running);
+        RefreshPauseResumeLabel();
+    }
+
+    private void OnStopSession(object? sender, EventArgs e)
+    {
+        if (_timerService is null) return;
+
+        _timerService.Stop();
+        SetState(TrayState.Loaded);
         RefreshPauseResumeLabel();
     }
 
