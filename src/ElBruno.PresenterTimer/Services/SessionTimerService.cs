@@ -256,6 +256,38 @@ public sealed class SessionTimerService : ISessionTimerService
         }
     }
 
+    /// <summary>
+    /// Stops the current session and resets all timing state to initial values.
+    /// Unlike <see cref="Pause"/>, this clears all progress but preserves the loaded plan.
+    /// After Stop, the next <see cref="Start"/> will begin from section 0 with elapsed = 0.
+    /// 
+    /// Must be called only when a plan is loaded (otherwise does nothing).
+    /// </summary>
+    public void Stop()
+    {
+        bool stopped;
+        lock (_sync)
+        {
+            // Only stop if a session is active (running, paused, or complete)
+            if (_plan is null || (!_isRunning && !_isPaused && !_isSessionComplete))
+            {
+                stopped = false;
+            }
+            else
+            {
+                SnapshotAndStopClock();
+                ResetState();
+                if (_plan is not null) InitAccumulators();
+                stopped = true;
+            }
+        }
+        if (stopped)
+        {
+            _ticker.Stop();
+            RaiseStateChanged();
+        }
+    }
+
     public void Reset()
     {
         lock (_sync)

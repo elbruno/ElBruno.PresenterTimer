@@ -1048,6 +1048,7 @@ internal sealed class StubTimerService : ISessionTimerService
     public void Start()  { }
     public void Pause()  { }
     public void Resume() { }
+    public void Stop()   { }
     public void Reset()  { }
     public void NextSection()            { }
     public void PreviousSection()        { }

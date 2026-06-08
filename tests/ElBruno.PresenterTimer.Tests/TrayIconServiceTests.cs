@@ -288,6 +288,7 @@ public class TrayIconServiceTests
             ResumeCalls++;
             IsPaused = false;
         }
+        public void Stop() { }
         public void Reset() { }
         public void NextSection() { }
         public void PreviousSection() { }

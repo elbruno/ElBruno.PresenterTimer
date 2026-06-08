@@ -386,6 +386,112 @@ public sealed class SessionTimerServiceTests : IDisposable
     }
 
     // ══════════════════════════════════════════════════════════════════════════
+    // Group 7 — Stop: state reset while preserving plan
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void Stop_WhileRunning_SetsIsRunningFalse()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        _sut.Stop();
+        Assert.False(_sut.IsRunning);
+    }
+
+    [Fact]
+    public void Stop_WhilePaused_SetsIsRunningFalse()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        _sut.Pause();
+        _sut.Stop();
+        Assert.False(_sut.IsRunning);
+    }
+
+    [Fact]
+    public void Stop_ResetsCurrentSectionIndexToZero()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5, 5, 5));
+        _sut.Start();
+        _sut.NextSection();
+        _sut.NextSection();
+        _sut.Stop();
+        Assert.Equal(0, _sut.CurrentSectionIndex);
+    }
+
+    [Fact]
+    public void Stop_ClearsIsPaused()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        _sut.Pause();
+        _sut.Stop();
+        Assert.False(_sut.IsPaused);
+    }
+
+    [Fact]
+    public void Stop_ClearsIsSessionComplete()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        _sut.NextSection(); // only one section → complete
+        _sut.Stop();
+        Assert.False(_sut.IsSessionComplete);
+    }
+
+    [Fact]
+    public void Stop_PreservesLoadedPlan()
+    {
+        var plan = PlanWithMinutes(5, 5, 5);
+        _sut.LoadPlan(plan);
+        _sut.Start();
+        _sut.NextSection();
+        _sut.Stop();
+        Assert.Same(plan, _sut.Plan);
+    }
+
+    [Fact]
+    public void Stop_RaisesStateChangedEvent()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        var raised = false;
+        _sut.StateChanged += (_, _) => raised = true;
+        _sut.Stop();
+        Assert.True(raised);
+    }
+
+    [Fact]
+    public void Stop_AfterStop_CanStartAgain()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        _sut.Stop();
+        // Should be able to start again without reloading plan
+        _sut.Start();
+        Assert.True(_sut.IsRunning);
+        Assert.Equal(0, _sut.CurrentSectionIndex);
+    }
+
+    [Fact(DisplayName = "Stop_ResetsSessionElapsedToZero [timing-sensitive]")]
+    public async Task Stop_ResetsSessionElapsedToZero()
+    {
+        _sut.LoadPlan(PlanWithMinutes(5));
+        _sut.Start();
+        await Task.Delay(150); // accumulate ~150ms of elapsed time
+        _sut.Stop();
+        Assert.Equal(TimeSpan.Zero, _sut.SessionElapsed);
+    }
+
+    [Fact]
+    public void Stop_WithoutPlan_IsNoOp()
+    {
+        // Should not throw when no plan is loaded
+        _sut.Stop();
+        Assert.False(_sut.IsRunning);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
     // Group 6 — Pause / Resume
     // ══════════════════════════════════════════════════════════════════════════
 

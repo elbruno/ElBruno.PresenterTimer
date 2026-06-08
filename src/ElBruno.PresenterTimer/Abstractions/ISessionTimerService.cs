@@ -106,6 +106,13 @@ public interface ISessionTimerService : IDisposable
     /// <summary>Resumes a paused timer from the exact point it was paused.</summary>
     void Resume();
 
+    /// <summary>
+    /// Stops a running or paused session and resets all timing state to the beginning.
+    /// Unlike <see cref="Pause"/>, this clears all progress but preserves the loaded plan.
+    /// After Stop, the next <see cref="Start"/> will begin from section 0 with elapsed = 0.
+    /// </summary>
+    void Stop();
+
     /// <summary>Stops the timer and resets all state to the beginning of the plan.</summary>
     void Reset();
 
