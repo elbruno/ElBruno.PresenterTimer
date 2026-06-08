@@ -40,20 +40,54 @@
 
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <!-- ── Header with Close Button ────────────────────────────────── -->
+                <Grid Grid.Row="0" Height="24" Margin="0,0,0,8">
+                    <TextBlock Text="Session" 
+                               FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                               Foreground="#BBB"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left"/>
+                    <Button x:Name="CloseButton"
+                            Click="OnCloseButtonClick"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Width="20" Height="20"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="#AAA"
+                            FontFamily="Segoe UI" FontSize="14" FontWeight="Bold"
+                            Content="✕"
+                            ToolTip="Hide overlay">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="#FF5555"/>
+                                        <Setter Property="Background" Value="#33FF5555"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+
                 <!-- ── Main Content Area ──────────────────────────────────────── -->
-                <Grid Grid.Row="0" VerticalAlignment="Center">
+                <Grid Grid.Row="1" VerticalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Section Name (Large, Prominent) -->
-                    <TextBlock Grid.Row="0"
+                    <!-- Section Name (Large, Prominent) - Responsive Font Size -->
+                    <TextBlock x:Name="SectionTitleBlock"
+                               Grid.Row="0"
                                Text="{Binding CurrentSectionTitle}"
                                FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
                                Foreground="#64B5F6"
@@ -74,12 +108,14 @@
 
                         <!-- Section Remaining Time -->
                         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,8">
-                            <TextBlock Text="Section Remaining" 
-                                       FontFamily="Segoe UI" FontSize="11" 
+                            <TextBlock x:Name="SectionLabelBlock"
+                                       Text="Section Remaining" 
+                                       FontFamily="Segoe UI" FontSize="11"
                                        Foreground="#AAA"
                                        HorizontalAlignment="Center"
                                        Margin="0,0,0,4"/>
-                            <TextBlock Text="{Binding CurrentSectionRemainingDisplay}"
+                            <TextBlock x:Name="SectionTimeBlock"
+                                       Text="{Binding CurrentSectionRemainingDisplay}"
                                        FontFamily="Segoe UI Mono,Consolas" FontSize="18" FontWeight="SemiBold"
                                        Foreground="#90CAF9"
                                        HorizontalAlignment="Center"
@@ -89,12 +125,14 @@
 
                         <!-- Session Remaining Time -->
                         <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                            <TextBlock Text="Session Remaining" 
-                                       FontFamily="Segoe UI" FontSize="10" 
+                            <TextBlock x:Name="SessionLabelBlock"
+                                       Text="Session Remaining" 
+                                       FontFamily="Segoe UI" FontSize="10"
                                        Foreground="#888"
                                        HorizontalAlignment="Center"
                                        Margin="0,0,0,3"/>
-                            <TextBlock Text="{Binding SessionRemainingDisplay}"
+                            <TextBlock x:Name="SessionTimeBlock"
+                                       Text="{Binding SessionRemainingDisplay}"
                                        FontFamily="Segoe UI Mono,Consolas" FontSize="14"
                                        Foreground="#BDBDBD"
                                        HorizontalAlignment="Center"
@@ -105,7 +143,7 @@
                 </Grid>
 
                 <!-- ── Mini Progress Bar at Bottom ────────────────────────────── -->
-                <Border Grid.Row="1"
+                <Border Grid.Row="2"
                         Background="#1A1A1A"
                         CornerRadius="2"
                         Height="6"

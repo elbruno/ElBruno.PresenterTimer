@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.ComponentModel;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -58,6 +59,38 @@ public partial class MiniOverlayWindow : Window
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         UpdateProgressBar();
+        UpdateResponsiveFonts();
+    }
+
+    private void UpdateResponsiveFonts()
+    {
+        // Scale fonts based on window width
+        double scale = ActualWidth / 320.0; // 320 is the default width
+        
+        if (FindName("SectionTitleBlock") is TextBlock sectionTitle)
+        {
+            sectionTitle.FontSize = Math.Max(12, Math.Min(20, 20 * scale));
+        }
+        
+        if (FindName("SectionLabelBlock") is TextBlock sectionLabel)
+        {
+            sectionLabel.FontSize = Math.Max(8, Math.Min(11, 11 * scale));
+        }
+        
+        if (FindName("SectionTimeBlock") is TextBlock sectionTime)
+        {
+            sectionTime.FontSize = Math.Max(12, Math.Min(18, 18 * scale));
+        }
+        
+        if (FindName("SessionLabelBlock") is TextBlock sessionLabel)
+        {
+            sessionLabel.FontSize = Math.Max(7, Math.Min(10, 10 * scale));
+        }
+        
+        if (FindName("SessionTimeBlock") is TextBlock sessionTime)
+        {
+            sessionTime.FontSize = Math.Max(10, Math.Min(14, 14 * scale));
+        }
     }
 
     private void UpdateProgressBar()
@@ -95,6 +128,11 @@ public partial class MiniOverlayWindow : Window
     {
         if (e.ButtonState == System.Windows.Input.MouseButtonState.Pressed)
             DragMove();
+    }
+
+    private void OnCloseButtonClick(object sender, RoutedEventArgs e)
+    {
+        Hide();
     }
 
     // ── Position persistence ──────────────────────────────────────────────────

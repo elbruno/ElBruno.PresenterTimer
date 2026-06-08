@@ -22,6 +22,11 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.5.0 — Mini Window Enhancements**
+  - Added close button (✕) to mini window for easy hiding without clicking away
+  - Implemented responsive text sizing that adjusts font sizes when mini window is resized
+  - Fonts scale smoothly based on window width for readability at any size
+  - All text remains properly readable from small to large window dimensions
 - ✨ **v0.4.0 — Improved Settings UI & Recent Files Management**
   - Overlay mode selection now editable in Settings (dropdown to switch between Full Timeline and Mini Window)
   - Recent Files reorganized into two menu sections for better UX:
@@ -91,7 +96,7 @@ dotnet run --project src\ElBruno.PresenterTimer
 
 The application will launch in the Windows system tray.
 
-### Run tests (250+ tests)
+### Run tests (340+ tests)
 
 ```bash
 dotnet test ElBruno.PresenterTimer.sln
