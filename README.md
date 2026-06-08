@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/ElBruno.PresenterTimer.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.PresenterTimer)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ElBruno.PresenterTimer.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.PresenterTimer)
-[![Build Status](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/dotnet-tool-publish.yml/badge.svg)](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/dotnet-tool-publish.yml)
+[![Build Status](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/publish.yml/badge.svg)](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
 [![GitHub stars](https://img.shields.io/github/stars/elbruno/ElBruno.PresenterTimer?style=social)](https://github.com/elbruno/ElBruno.PresenterTimer)
