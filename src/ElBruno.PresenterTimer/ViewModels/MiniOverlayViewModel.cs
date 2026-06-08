@@ -28,6 +28,7 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     private string _sessionTitle                     = string.Empty;
     private string _currentSectionTitle              = string.Empty;
     private string _currentSectionRemainingDisplay   = "00:00";
+    private string _sessionLapsedDisplay             = "00:00";
     private string _sessionRemainingDisplay          = "00:00";
     private bool   _isSessionOvertime;
     private bool   _isSectionWarning;
@@ -74,6 +75,10 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
 
         SessionTitle        = plan.Title;
         CurrentSectionTitle = plan.Sections.Count > 0 ? plan.Sections[0].Title : string.Empty;
+        
+        // Initialize next sections for the first section
+        if (plan.Sections.Count > 0)
+            ApplySectionChange(0);
 
         // Alert message auto-clear timer (runs on WPF dispatcher — created on UI thread)
         _alertMessageTimer          = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
@@ -108,6 +113,12 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     {
         get => _sessionRemainingDisplay;
         private set => SetProperty(ref _sessionRemainingDisplay, value);
+    }
+
+    public string SessionLapsedDisplay
+    {
+        get => _sessionLapsedDisplay;
+        private set => SetProperty(ref _sessionLapsedDisplay, value);
     }
 
     /// <summary>Formatted overtime string, e.g. "+01:42". Empty when not overtime.</summary>
@@ -264,6 +275,8 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     private void ApplyTick(TimerTickEventArgs e)
     {
         // Session-level updates
+        SessionLapsedDisplay = FormatTime(e.SessionElapsed);
+        
         SessionRemainingDisplay = e.IsSessionOvertime
             ? $"+{FormatTime(e.SessionOvertime)}"
             : FormatTime(e.SessionRemaining);

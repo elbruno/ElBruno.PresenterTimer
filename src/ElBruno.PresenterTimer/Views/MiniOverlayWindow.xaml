@@ -107,34 +107,60 @@
                         <TextBlock x:Name="SectionLabelBlock"
                                    Text="Section Remaining" 
                                    FontFamily="Segoe UI" FontSize="11"
-                                   Foreground="#AAA"
+                                   Foreground="#FFF"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,4"/>
                         <TextBlock x:Name="SectionTimeBlock"
                                    Text="{Binding CurrentSectionRemainingDisplay}"
                                    FontFamily="Segoe UI Mono,Consolas" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#90CAF9"
+                                   Foreground="#64B5F6"
                                    HorizontalAlignment="Center"
                                    AutomationProperties.Name="{Binding CurrentSectionRemainingDisplay, StringFormat='Section remaining: {0}'}"
                                    AutomationProperties.LiveSetting="Polite"/>
                     </StackPanel>
 
-                    <!-- Session Remaining Time -->
-                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,8">
-                        <TextBlock x:Name="SessionLabelBlock"
-                                   Text="Session Remaining" 
+                    <!-- Session Lapsed / Remaining Time -->
+                    <Grid Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Lapsed Label and Value -->
+                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Lapsed" 
                                    FontFamily="Segoe UI" FontSize="10"
-                                   Foreground="#888"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,3"/>
-                        <TextBlock x:Name="SessionTimeBlock"
+                                   Foreground="#FFF"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,0,8,3"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0"
+                                   x:Name="SessionLapsedBlock"
+                                   Text="{Binding SessionLapsedDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#90CAF9"
+                                   HorizontalAlignment="Right"
+                                   AutomationProperties.Name="{Binding SessionLapsedDisplay, StringFormat='Session lapsed: {0}'}"
+                                   AutomationProperties.LiveSetting="Polite"/>
+
+                        <!-- Remaining Label and Value -->
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="Remaining" 
+                                   FontFamily="Segoe UI" FontSize="10"
+                                   Foreground="#FFF"
+                                   HorizontalAlignment="Left"
+                                   Margin="8,0,0,3"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1"
                                    Text="{Binding SessionRemainingDisplay}"
-                                   FontFamily="Segoe UI Mono,Consolas" FontSize="14"
-                                   Foreground="#BDBDBD"
-                                   HorizontalAlignment="Center"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#A5D6A7"
+                                   HorizontalAlignment="Left"
                                    AutomationProperties.Name="{Binding SessionRemainingDisplay, StringFormat='Session remaining: {0}'}"
                                    AutomationProperties.LiveSetting="Polite"/>
-                    </StackPanel>
+                    </Grid>
 
                     <!-- Control Buttons (Pause/Resume, Restart) -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,12">

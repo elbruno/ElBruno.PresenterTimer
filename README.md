@@ -22,6 +22,12 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.8.0 — Brighter Colors & Session Lapsed/Remaining Display**
+  - Updated all colors to brighter white (#FFF) for better readability
+  - New session time display showing both lapsed and remaining times side-by-side
+  - Session lapsed time shows in blue, remaining in green for clear differentiation
+  - Fixed next sections display to show from the first section, not just from second section
+  - Improved overall visibility and contrast in mini window
 - ✨ **v0.7.0 — Enhanced Mini Window with Controls & Next Sections**
   - Added Pause/Resume button (⏸/▶) in mini window for quick session control
   - Added Restart Section button (⟲) to restart the current section
