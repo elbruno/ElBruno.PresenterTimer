@@ -1,0 +1,135 @@
+<Window x:Class="ElBruno.PresenterTimer.Views.MiniOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ElBruno.PresenterTimer.ViewModels"
+        Title="Session Mini Overlay"
+        WindowStyle="None"
+        Topmost="True"
+        ShowInTaskbar="False"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        Width="320"
+        Height="200"
+        Opacity="{Binding OverlayOpacity}">
+
+    <Window.Resources>
+        <!-- Pulse animation: double white-flash on the PulseFlash overlay rectangle -->
+        <Storyboard x:Key="PulseStoryboard" AutoReverse="False">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PulseFlash"
+                                           Storyboard.TargetProperty="Opacity">
+                <LinearDoubleKeyFrame KeyTime="0:0:0.00" Value="0.38"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="0.08"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.28" Value="0.28"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.50" Value="0.00"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
+
+    <!-- Root Grid lets PulseFlash overlay float over the entire RootBorder -->
+    <Grid>
+
+        <!-- ── Outer draggable shell with border for resize grip ──────────────── -->
+        <Border x:Name="RootBorder"
+                Background="#D01E1E2E"
+                CornerRadius="8"
+                Padding="12"
+                MouseLeftButtonDown="OnMouseLeftButtonDown"
+                BorderBrush="#333"
+                BorderThickness="1">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- ── Main Content Area ──────────────────────────────────────── -->
+                <Grid Grid.Row="0" VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section Name (Large, Prominent) -->
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding CurrentSectionTitle}"
+                               FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                               Foreground="#64B5F6"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Top"
+                               TextAlignment="Center"
+                               TextTrimming="WordEllipsis"
+                               Margin="0,0,0,12"
+                               AutomationProperties.Name="{Binding CurrentSectionTitle, StringFormat='Current section: {0}'}"
+                               AutomationProperties.LiveSetting="Polite"/>
+
+                    <!-- Time Information Grid -->
+                    <Grid Grid.Row="1" VerticalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Section Remaining Time -->
+                        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,8">
+                            <TextBlock Text="Section Remaining" 
+                                       FontFamily="Segoe UI" FontSize="11" 
+                                       Foreground="#AAA"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding CurrentSectionRemainingDisplay}"
+                                       FontFamily="Segoe UI Mono,Consolas" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="#90CAF9"
+                                       HorizontalAlignment="Center"
+                                       AutomationProperties.Name="{Binding CurrentSectionRemainingDisplay, StringFormat='Section remaining: {0}'}"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                        </StackPanel>
+
+                        <!-- Session Remaining Time -->
+                        <StackPanel Grid.Row="1" HorizontalAlignment="Center">
+                            <TextBlock Text="Session Remaining" 
+                                       FontFamily="Segoe UI" FontSize="10" 
+                                       Foreground="#888"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding SessionRemainingDisplay}"
+                                       FontFamily="Segoe UI Mono,Consolas" FontSize="14"
+                                       Foreground="#BDBDBD"
+                                       HorizontalAlignment="Center"
+                                       AutomationProperties.Name="{Binding SessionRemainingDisplay, StringFormat='Session remaining: {0}'}"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <!-- ── Mini Progress Bar at Bottom ────────────────────────────── -->
+                <Border Grid.Row="1"
+                        Background="#1A1A1A"
+                        CornerRadius="2"
+                        Height="6"
+                        Margin="0,12,0,0"
+                        BorderBrush="#444"
+                        BorderThickness="1">
+
+                    <!-- Progress Fill -->
+                    <Grid Background="Transparent">
+                        <Rectangle x:Name="ProgressFill"
+                                   Fill="#64B5F6"
+                                   HorizontalAlignment="Left"
+                                   IsHitTestVisible="False"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ── Pulse Flash Overlay ────────────────────────────────────────────── -->
+        <Rectangle x:Name="PulseFlash"
+                   Fill="White"
+                   Opacity="0"
+                   IsHitTestVisible="False"/>
+
+    </Grid>
+
+</Window>

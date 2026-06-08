@@ -497,7 +497,7 @@ public sealed class SettingsViewModel : ViewModelBase
     public static IReadOnlyList<string> ThemeOptions        { get; } = ["System", "Light", "Dark"];
     public static IReadOnlyList<string> FontSizeOptions     { get; } = ["Small", "Medium", "Large"];
     public static IReadOnlyList<string> BorderRadiusOptions { get; } = ["None", "Small", "Medium", "Large"];
-    public static IReadOnlyList<string> OverlayModeOptions  { get; } = ["FullTimeline", "Compact"];
+    public static IReadOnlyList<string> OverlayModeOptions  { get; } = ["FullTimeline", "Mini"];
     public static IReadOnlyList<string> PositionOptions     { get; } = ["TopCenter", "TopLeft", "TopRight", "BottomCenter", "BottomLeft", "BottomRight"];
     public static IReadOnlyList<string> HeightOptions       { get; } = ["Compact", "Expanded"];
     public static IReadOnlyList<string> FontFamilyOptions   { get; } = ["Segoe UI", "Consolas", "Calibri", "Arial", "Tahoma"];

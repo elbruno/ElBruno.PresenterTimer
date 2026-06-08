@@ -20,8 +20,10 @@ public partial class App : Application
     private FileDialogService?      _fileDialogService;
     private SessionTimerService?    _timerService;
     private TimelineOverlayWindow?  _overlayWindow;
+    private Window?                 _miniOverlayWindow;
     private SettingsWindow?         _settingsWindow;
     private SessionPlanEditorWindow? _sessionPlanEditorWindow;
+    private string                  _currentOverlayMode = "FullTimeline"; // tracks active overlay mode
 
     // ── Phase 10 services ─────────────────────────────────────────────────────
     private RecentSessionsService?   _recentSessionsService;
@@ -187,16 +189,17 @@ public partial class App : Application
         _alertService.Attach(_timerService);
         _alertService.AlertRaised += OnAlertRaised;
 
-        // ── Create overlay window ────────────────────────────────────────────
-        var vm = new TimelineOverlayViewModel(
-            _timerService,
-            plan,
-            settings,
-            Dispatcher,
-            OnOverlayPositionChanged);
-
-        _overlayWindow = new TimelineOverlayWindow { DataContext = vm };
-        PositionOverlay(_overlayWindow);
+        // ── Create overlay window based on current mode setting ──────────────
+        _currentOverlayMode = settings.OverlayLayout.OverlayMode;
+        
+        if (_currentOverlayMode == "Mini")
+        {
+            CreateMiniOverlay(plan, settings);
+        }
+        else
+        {
+            CreateFullTimelineOverlay(plan, settings);
+        }
 
         // Wire tray overlay-visibility callbacks
         _trayIconService.ShowOverlayAction   = () => Dispatcher.BeginInvoke(ShowOverlayWindow);
@@ -205,7 +208,12 @@ public partial class App : Application
 
         // Show overlay automatically if the behavior setting is on (PRD §7.1 / §8.3)
         if (settings.Behavior.ShowOverlayWhenSessionStarts)
-            _overlayWindow.Show();
+        {
+            if (_overlayWindow is not null)
+                _overlayWindow.Show();
+            else if (_miniOverlayWindow is not null)
+                _miniOverlayWindow.Show();
+        }
 
         // ── Start the timer ──────────────────────────────────────────────────
         _timerService.Start();
@@ -227,6 +235,13 @@ public partial class App : Application
             bool enablePulse = settings.Alerts.EnableOverlayPulse;
             int  duration   = settings.Alerts.AlertMessageDurationSeconds;
             overlayVm.TriggerAlert(e, duration, enablePulse);
+        }
+        else if (_miniOverlayWindow?.DataContext is MiniOverlayViewModel miniVm)
+        {
+            var settings    = _settingsService!.Settings;
+            bool enablePulse = settings.Alerts.EnableOverlayPulse;
+            int  duration   = settings.Alerts.AlertMessageDurationSeconds;
+            miniVm.TriggerAlert(e, duration, enablePulse);
         }
 
         // ── Tray color update (Warning/Overtime alert types reinforce tray state) ──
@@ -318,7 +333,10 @@ public partial class App : Application
 
                 // Hide overlay if the behavior setting says so (PRD §7.14 / §8.5)
                 if (settings.Behavior.HideOverlayWhenSessionEnds)
+                {
                     _overlayWindow?.Hide();
+                    _miniOverlayWindow?.Hide();
+                }
 
                 // Show summary window if the general setting allows it (PRD §7.14)
                 if (settings.General.ShowSummaryOnSessionEnd)
@@ -434,6 +452,98 @@ public partial class App : Application
         window.Top  = clamped.Y;
     }
 
+    private void CreateFullTimelineOverlay(SessionPlan plan, AppSettings settings)
+    {
+        if (_overlayWindow is not null)
+        {
+            if (_overlayWindow.DataContext is IDisposable disposable)
+                disposable.Dispose();
+            _overlayWindow.ClosePermanently();
+        }
+
+        var vm = new TimelineOverlayViewModel(
+            _timerService!,
+            plan,
+            settings,
+            Dispatcher,
+            OnOverlayPositionChanged);
+
+        _overlayWindow = new TimelineOverlayWindow { DataContext = vm };
+        PositionOverlay(_overlayWindow);
+        _currentOverlayMode = "FullTimeline";
+    }
+
+    private void CreateMiniOverlay(SessionPlan plan, AppSettings settings)
+    {
+        if (_miniOverlayWindow is not null)
+        {
+            if (_miniOverlayWindow.DataContext is IDisposable disposable)
+                disposable.Dispose();
+            _miniOverlayWindow.Close();
+        }
+
+        var vm = new MiniOverlayViewModel(
+            _timerService!,
+            plan,
+            settings,
+            Dispatcher,
+            OnMiniOverlayPositionChanged);
+
+        _miniOverlayWindow = new MiniOverlayWindow { DataContext = vm };
+        PositionMiniOverlay(_miniOverlayWindow);
+        _currentOverlayMode = "Mini";
+    }
+
+    private void PositionMiniOverlay(Window window)
+    {
+        var layout = _settingsService!.Settings.OverlayLayout;
+
+        // Resolve the target monitor (falls back to primary if saved monitor is disconnected)
+        var monitor = _windowPlacementService!.ResolveMonitor(layout.MonitorDeviceName, layout.Monitor);
+
+        // Mini window default dimensions (user can resize)
+        int miniWidth  = 320;
+        int miniHeight = 200;
+
+        // Check if custom position is saved for mini window
+        if (layout.RememberCustomPosition && layout.CustomX.HasValue && layout.CustomY.HasValue)
+        {
+            window.Left = layout.CustomX.Value;
+            window.Top  = layout.CustomY.Value;
+        }
+        else
+        {
+            // Default to TopRight corner
+            var position = OverlayPosition.TopRight;
+            var pt = _windowPlacementService.ResolvePlacement(
+                position,
+                monitor,
+                new System.Drawing.Size(miniWidth, miniHeight),
+                null,
+                null);
+
+            // Clamp so the overlay cannot escape the working area
+            var clamped = _windowPlacementService.ClampToWorkingArea(
+                pt,
+                new System.Drawing.Size(miniWidth, miniHeight),
+                monitor);
+
+            window.Left = clamped.X;
+            window.Top  = clamped.Y;
+        }
+    }
+
+    private void OnMiniOverlayPositionChanged(double left, double top)
+    {
+        if (_settingsService is null) return;
+        var layout = _settingsService.Settings.OverlayLayout;
+        if (!layout.RememberCustomPosition) return;
+
+        layout.CustomX = left;
+        layout.CustomY = top;
+        _settingsService.Save();
+    }
+
     private void OnOverlayPositionChanged(double left, double top)
     {
         if (_settingsService is null) return;
@@ -447,13 +557,25 @@ public partial class App : Application
 
     private void CloseOverlay()
     {
-        if (_overlayWindow is null) return;
+        // Close timeline overlay
+        if (_overlayWindow is not null)
+        {
+            if (_overlayWindow.DataContext is IDisposable disposable)
+                disposable.Dispose();
 
-        if (_overlayWindow.DataContext is IDisposable disposable)
-            disposable.Dispose();
+            _overlayWindow.ClosePermanently();
+            _overlayWindow = null;
+        }
 
-        _overlayWindow.ClosePermanently();
-        _overlayWindow = null;
+        // Close mini overlay
+        if (_miniOverlayWindow is not null)
+        {
+            if (_miniOverlayWindow.DataContext is IDisposable disposable)
+                disposable.Dispose();
+
+            _miniOverlayWindow.Close();
+            _miniOverlayWindow = null;
+        }
 
         // Clear overlay callbacks on the tray service
         if (_trayIconService is not null)
@@ -462,6 +584,8 @@ public partial class App : Application
             _trayIconService.HideOverlayAction   = null;
             _trayIconService.ToggleOverlayAction = null;
         }
+
+        _currentOverlayMode = "FullTimeline"; // reset to default
     }
 
     // ---------------------------------------------------------------------------
@@ -577,10 +701,39 @@ public partial class App : Application
         // Apply overlay opacity (and any other live-updatable style) to the running overlay
         if (_overlayWindow?.DataContext is TimelineOverlayViewModel overlayVm)
             overlayVm.ApplyStyleSettings(_settingsService!.Settings.OverlayStyle);
+        else if (_miniOverlayWindow?.DataContext is MiniOverlayViewModel miniVm)
+            miniVm.ApplyStyleSettings(_settingsService!.Settings.OverlayStyle);
 
         // Re-position the overlay if layout settings changed (PRD §7.7 / §7.18)
         if (_overlayWindow is not null)
             PositionOverlay(_overlayWindow);
+        else if (_miniOverlayWindow is not null)
+            PositionMiniOverlay(_miniOverlayWindow);
+
+        // Check if overlay mode changed — if so, switch windows
+        var newMode = _settingsService!.Settings.OverlayLayout.OverlayMode;
+        if (newMode != _currentOverlayMode && _timerService is not null)
+        {
+            // Close current overlay and create new one of different type
+            CloseOverlay();
+            if (newMode == "Mini")
+            {
+                CreateMiniOverlay(_timerService.Plan, _settingsService.Settings);
+            }
+            else
+            {
+                CreateFullTimelineOverlay(_timerService.Plan, _settingsService.Settings);
+            }
+
+            // Show the new overlay if it should be visible
+            if ((_overlayWindow?.IsVisible ?? false) || (_miniOverlayWindow?.IsVisible ?? false))
+            {
+                if (_overlayWindow is not null)
+                    _overlayWindow.Show();
+                else if (_miniOverlayWindow is not null)
+                    _miniOverlayWindow.Show();
+            }
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -595,30 +748,52 @@ public partial class App : Application
 
     private void ShowOverlayWindow()
     {
-        if (_overlayWindow is null) return;
+        if (_overlayWindow is not null)
+        {
+            if (!_overlayWindow.IsVisible)
+                _overlayWindow.Show();
 
-        if (!_overlayWindow.IsVisible)
-            _overlayWindow.Show();
+            if (_overlayWindow.WindowState == WindowState.Minimized)
+                _overlayWindow.WindowState = WindowState.Normal;
 
-        if (_overlayWindow.WindowState == WindowState.Minimized)
-            _overlayWindow.WindowState = WindowState.Normal;
+            _overlayWindow.ShowInTaskbar = false;
+            _overlayWindow.Activate();
+        }
+        else if (_miniOverlayWindow is not null)
+        {
+            if (!_miniOverlayWindow.IsVisible)
+                _miniOverlayWindow.Show();
 
-        _overlayWindow.ShowInTaskbar = false;
-        _overlayWindow.Activate();
+            if (_miniOverlayWindow.WindowState == WindowState.Minimized)
+                _miniOverlayWindow.WindowState = WindowState.Normal;
+
+            _miniOverlayWindow.ShowInTaskbar = false;
+            _miniOverlayWindow.Activate();
+        }
     }
 
     private void HideOverlayWindow()
     {
-        if (_overlayWindow is null) return;
-        _overlayWindow.ShowInTaskbar = false;
-        _overlayWindow.Hide();
+        if (_overlayWindow is not null)
+        {
+            _overlayWindow.ShowInTaskbar = false;
+            _overlayWindow.Hide();
+        }
+
+        if (_miniOverlayWindow is not null)
+        {
+            _miniOverlayWindow.ShowInTaskbar = false;
+            _miniOverlayWindow.Hide();
+        }
     }
 
     private void ToggleOverlayWindow()
     {
-        if (_overlayWindow is null) return;
+        bool overlayVisible = (_overlayWindow?.IsVisible == true) || (_miniOverlayWindow?.IsVisible == true);
+        bool overlayMinimized = (_overlayWindow?.WindowState == WindowState.Minimized) ||
+                               (_miniOverlayWindow?.WindowState == WindowState.Minimized);
 
-        if (!_overlayWindow.IsVisible || _overlayWindow.WindowState == WindowState.Minimized)
+        if (!overlayVisible || overlayMinimized)
         {
             ShowOverlayWindow();
             return;
