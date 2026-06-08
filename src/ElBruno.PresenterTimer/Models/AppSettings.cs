@@ -12,6 +12,7 @@ public sealed class AppSettings
     public OverlayLayoutSettings OverlayLayout { get; set; } = new();
     public AlertSettings Alerts { get; set; } = new();
     public HotkeySettings Hotkeys { get; set; } = new();
+    public SpeechAnalysisSettings SpeechAnalysis { get; set; } = new();
 }
 
 /// <summary>PRD §7.12 General settings.</summary>
@@ -163,4 +164,35 @@ public sealed class HotkeySettings
 
     /// <summary>Suggested: Ctrl+Alt+Up</summary>
     public string ExtendSectionOneMinute { get; set; } = "Ctrl+Alt+Up";
+}
+
+/// <summary>Speech Analysis settings for real-time speech-to-text and content analysis.</summary>
+public sealed class SpeechAnalysisSettings
+{
+    /// <summary>Enable/disable speech analysis feature.</summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>Model type: "Local", "AzureOpenAI", or "Foundry".</summary>
+    public string ModelType { get; set; } = "Local";
+
+    /// <summary>Path to local Whisper model file (only used if ModelType == "Local").</summary>
+    public string LocalModelPath { get; set; } = "";
+
+    /// <summary>Azure OpenAI endpoint URL (only used if ModelType == "AzureOpenAI").</summary>
+    public string AzureOpenAIEndpoint { get; set; } = "";
+
+    /// <summary>Azure OpenAI API key (only used if ModelType == "AzureOpenAI").</summary>
+    public string AzureOpenAIKey { get; set; } = "";
+
+    /// <summary>Foundry project ID (only used if ModelType == "Foundry").</summary>
+    public string FoundryProjectId { get; set; } = "";
+
+    /// <summary>Analysis sensitivity: "Low", "Medium", or "High".</summary>
+    public string AnalysisSensitivity { get; set; } = "Medium";
+
+    /// <summary>Show topic relevance score in mini window.</summary>
+    public bool ShowTopicRelevance { get; set; } = true;
+
+    /// <summary>Show next section preview in mini window.</summary>
+    public bool ShowNextSectionPreview { get; set; } = true;
 }

@@ -22,6 +22,14 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.9.0 — Speech Analysis UI Foundation (Phase 1)**
+  - Added microphone button (🎤) to mini window header for enabling/disabling speech analysis
+  - New "Speech Analysis" tab in Settings window with complete configuration UI
+  - Model selection: Local (Whisper), Azure OpenAI, or Foundry hosted models
+  - Analysis sensitivity slider (Low / Medium / High) for topic matching strictness
+  - Display options to show topic relevance score and next section preview in mini window
+  - Phase 1 release: UI stubs only. Phase 2 will implement full speech-to-text and LLM integration
+  - Foundation for real-time speech analysis to match presenter speech with session sections
 - ✨ **v0.8.0 — Brighter Colors & Session Lapsed/Remaining Display**
   - Updated all colors to brighter white (#FFF) for better readability
   - New session time display showing both lapsed and remaining times side-by-side

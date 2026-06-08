@@ -34,6 +34,9 @@ public partial class App : Application
     private SoundAlertService?          _soundAlertService;
     private SystemNotificationService?  _notificationService;
 
+    // ── Speech analysis service (app-lifetime; disabled by default in Phase 1) ──
+    private SpeechAnalysisService?      _speechAnalysisService;
+
     // ── Session summary state ─────────────────────────────────────────────────
     /// <summary>Result from the most recently completed session; used by "Open Session Summary".</summary>
     private SessionResult? _lastSessionResult;
@@ -67,6 +70,9 @@ public partial class App : Application
 
         // ── Sound service (app-lifetime; PlayTestSound ignores IsEnabled flag) ───
         _soundAlertService = new SoundAlertService(_settingsService.Settings.Alerts);
+
+        // ── Speech analysis service (app-lifetime; disabled by default in Phase 1) ──
+        _speechAnalysisService = new SpeechAnalysisService();
 
         // ── Tray icon ───────────────────────────────────────────────────────────
         _trayIconService = new TrayIconService(

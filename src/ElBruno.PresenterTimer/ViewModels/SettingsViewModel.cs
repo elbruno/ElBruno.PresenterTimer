@@ -522,8 +522,116 @@ public sealed class SettingsViewModel : ViewModelBase
     }
 
     // ══════════════════════════════════════════════════════════════════════════
+    // Speech Analysis tab
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private bool _speechAnalysisEnabled;
+    public bool SpeechAnalysisEnabled
+    {
+        get => _speechAnalysisEnabled;
+        set => SetProperty(ref _speechAnalysisEnabled, value);
+    }
+
+    private bool _speechModelTypeLocal = true;
+    public bool SpeechModelTypeLocal
+    {
+        get => _speechModelTypeLocal;
+        set
+        {
+            if (SetProperty(ref _speechModelTypeLocal, value) && value)
+            {
+                SpeechModelTypeAzure = false;
+                SpeechModelTypeFoundry = false;
+            }
+        }
+    }
+
+    private bool _speechModelTypeAzure;
+    public bool SpeechModelTypeAzure
+    {
+        get => _speechModelTypeAzure;
+        set
+        {
+            if (SetProperty(ref _speechModelTypeAzure, value) && value)
+            {
+                SpeechModelTypeLocal = false;
+                SpeechModelTypeFoundry = false;
+            }
+        }
+    }
+
+    private bool _speechModelTypeFoundry;
+    public bool SpeechModelTypeFoundry
+    {
+        get => _speechModelTypeFoundry;
+        set
+        {
+            if (SetProperty(ref _speechModelTypeFoundry, value) && value)
+            {
+                SpeechModelTypeLocal = false;
+                SpeechModelTypeAzure = false;
+            }
+        }
+    }
+
+    private string _localModelPath = "";
+    public string LocalModelPath
+    {
+        get => _localModelPath;
+        set => SetProperty(ref _localModelPath, value);
+    }
+
+    private string _azureOpenAIEndpoint = "";
+    public string AzureOpenAIEndpoint
+    {
+        get => _azureOpenAIEndpoint;
+        set => SetProperty(ref _azureOpenAIEndpoint, value);
+    }
+
+    private string _foundryProjectId = "";
+    public string FoundryProjectId
+    {
+        get => _foundryProjectId;
+        set => SetProperty(ref _foundryProjectId, value);
+    }
+
+    private string _analysisSensitivity = "Medium";
+    public string AnalysisSensitivity
+    {
+        get => _analysisSensitivity;
+        set => SetProperty(ref _analysisSensitivity, value);
+    }
+
+    private bool _showTopicRelevance = true;
+    public bool ShowTopicRelevance
+    {
+        get => _showTopicRelevance;
+        set => SetProperty(ref _showTopicRelevance, value);
+    }
+
+    private bool _showNextSectionPreview = true;
+    public bool ShowNextSectionPreview
+    {
+        get => _showNextSectionPreview;
+        set => SetProperty(ref _showNextSectionPreview, value);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
     // Static option lists for combo boxes
     // ══════════════════════════════════════════════════════════════════════════
+
+    public sealed class AnalysisSensitivityOption
+    {
+        public required string Value { get; init; }
+        public required string DisplayName { get; init; }
+    }
+
+    public IReadOnlyList<AnalysisSensitivityOption> AvailableAnalysisSensitivities => new[]
+    {
+        new AnalysisSensitivityOption { Value = "Low", DisplayName = "Low (Lenient matching)" },
+        new AnalysisSensitivityOption { Value = "Medium", DisplayName = "Medium (Balanced)" },
+        new AnalysisSensitivityOption { Value = "High", DisplayName = "High (Strict matching)" }
+    };
 
     public static IReadOnlyList<string> ThemeOptions        { get; } = ["System", "Light", "Dark"];
     public static IReadOnlyList<string> FontSizeOptions     { get; } = ["Small", "Medium", "Large"];
@@ -551,6 +659,15 @@ public sealed class SettingsViewModel : ViewModelBase
     /// </summary>
     public ICommand TestSoundCommand       { get; }
 
+    /// <summary>Browse for local Whisper model file.</summary>
+    public ICommand BrowseLocalModelCommand { get; }
+
+    /// <summary>Test Azure OpenAI connection.</summary>
+    public ICommand TestAzureConnectionCommand { get; }
+
+    /// <summary>Test Foundry connection.</summary>
+    public ICommand TestFoundryConnectionCommand { get; }
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public SettingsViewModel(ISettingsService settingsService, IFileDialogService fileDialogService, IWindowPlacementService windowPlacementService,
@@ -570,6 +687,9 @@ public sealed class SettingsViewModel : ViewModelBase
         ExportSettingsCommand  = new RelayCommand(ExecuteExportSettings);
         ImportSettingsCommand  = new RelayCommand(ExecuteImportSettings);
         TestSoundCommand       = new RelayCommand(() => playTestSound?.Invoke());
+        BrowseLocalModelCommand = new RelayCommand(ExecuteBrowseLocalModel);
+        TestAzureConnectionCommand = new RelayCommand(ExecuteTestAzureConnection);
+        TestFoundryConnectionCommand = new RelayCommand(ExecuteTestFoundryConnection);
     }
 
     // ── Command implementations ───────────────────────────────────────────────
@@ -651,6 +771,30 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
+    private void ExecuteBrowseLocalModel()
+    {
+        // TODO: Phase 2 - Implement file browser for Whisper model
+        System.Windows.MessageBox.Show(
+            "Model selection will be implemented in Phase 2.",
+            "Speech Analysis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+    }
+
+    private void ExecuteTestAzureConnection()
+    {
+        // TODO: Phase 2 - Implement Azure connection test
+        System.Windows.MessageBox.Show(
+            "Azure connection test will be implemented in Phase 2.",
+            "Speech Analysis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+    }
+
+    private void ExecuteTestFoundryConnection()
+    {
+        // TODO: Phase 2 - Implement Foundry connection test
+        System.Windows.MessageBox.Show(
+            "Foundry connection test will be implemented in Phase 2.",
+            "Speech Analysis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+    }
+
     // ── Load / Apply helpers ─────────────────────────────────────────────────
 
     /// <summary>Populates all VM properties from the given <see cref="AppSettings"/> snapshot.</summary>
@@ -726,6 +870,18 @@ public sealed class SettingsViewModel : ViewModelBase
         ResetSessionHotkey          = s.Hotkeys.ResetSession;
         ShowHideOverlayHotkey       = s.Hotkeys.ShowHideOverlay;
         ExtendSectionOneMinuteHotkey = s.Hotkeys.ExtendSectionOneMinute;
+
+        // Speech Analysis
+        SpeechAnalysisEnabled        = s.SpeechAnalysis.Enabled;
+        SpeechModelTypeLocal         = s.SpeechAnalysis.ModelType == "Local";
+        SpeechModelTypeAzure         = s.SpeechAnalysis.ModelType == "AzureOpenAI";
+        SpeechModelTypeFoundry       = s.SpeechAnalysis.ModelType == "Foundry";
+        LocalModelPath               = s.SpeechAnalysis.LocalModelPath;
+        AzureOpenAIEndpoint          = s.SpeechAnalysis.AzureOpenAIEndpoint;
+        FoundryProjectId             = s.SpeechAnalysis.FoundryProjectId;
+        AnalysisSensitivity          = s.SpeechAnalysis.AnalysisSensitivity;
+        ShowTopicRelevance           = s.SpeechAnalysis.ShowTopicRelevance;
+        ShowNextSectionPreview       = s.SpeechAnalysis.ShowNextSectionPreview;
     }
 
     /// <summary>Writes all VM properties back into the given <see cref="AppSettings"/> object.</summary>
@@ -801,6 +957,16 @@ public sealed class SettingsViewModel : ViewModelBase
         s.Hotkeys.ResetSession            = ResetSessionHotkey;
         s.Hotkeys.ShowHideOverlay         = ShowHideOverlayHotkey;
         s.Hotkeys.ExtendSectionOneMinute  = ExtendSectionOneMinuteHotkey;
+
+        // Speech Analysis
+        s.SpeechAnalysis.Enabled              = SpeechAnalysisEnabled;
+        s.SpeechAnalysis.ModelType            = SpeechModelTypeAzure ? "AzureOpenAI" : (SpeechModelTypeFoundry ? "Foundry" : "Local");
+        s.SpeechAnalysis.LocalModelPath       = LocalModelPath;
+        s.SpeechAnalysis.AzureOpenAIEndpoint  = AzureOpenAIEndpoint;
+        s.SpeechAnalysis.FoundryProjectId     = FoundryProjectId;
+        s.SpeechAnalysis.AnalysisSensitivity  = AnalysisSensitivity;
+        s.SpeechAnalysis.ShowTopicRelevance   = ShowTopicRelevance;
+        s.SpeechAnalysis.ShowNextSectionPreview = ShowNextSectionPreview;
     }
 
     private void LoadMonitorSelection(string? savedDeviceName, int legacyMonitorIndex)

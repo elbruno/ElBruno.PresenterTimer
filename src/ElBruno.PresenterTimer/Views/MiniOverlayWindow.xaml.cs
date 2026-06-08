@@ -158,6 +158,12 @@ public partial class MiniOverlayWindow : Window
             vm.RestartCurrentSection();
     }
 
+    private void OnMicrophoneToggleClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MiniOverlayViewModel vm)
+            vm.ToggleSpeechAnalysis();
+    }
+
     // ── Position persistence ──────────────────────────────────────────────────
 
     private void OnLocationChanged(object? sender, EventArgs e)

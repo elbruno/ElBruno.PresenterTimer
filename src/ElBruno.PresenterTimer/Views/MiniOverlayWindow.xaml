@@ -47,36 +47,66 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- ── Header with Close Button ────────────────────────────────── -->
+                <!-- ── Header with Microphone and Close Buttons ──────────────────── -->
                 <Grid Grid.Row="0" Height="24" Margin="0,0,0,8">
                     <TextBlock Text="Session" 
                                FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
                                Foreground="#BBB"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Left"/>
-                    <Button x:Name="CloseButton"
-                            Click="OnCloseButtonClick"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Width="20" Height="20"
-                            Padding="0"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="#AAA"
-                            FontFamily="Segoe UI" FontSize="14" FontWeight="Bold"
-                            Content="✕"
-                            ToolTip="Hide overlay">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="#FF5555"/>
-                                        <Setter Property="Background" Value="#33FF5555"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,0">
+                        <!-- Microphone Button -->
+                        <Button x:Name="MicrophoneButton"
+                                Click="OnMicrophoneToggleClick"
+                                VerticalAlignment="Center"
+                                Width="20" Height="20"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="#AAA"
+                                FontFamily="Segoe UI" FontSize="14"
+                                Content="🎤"
+                                ToolTip="Enable speech analysis (off)"
+                                Margin="0,0,8,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#FFF"/>
+                                            <Setter Property="Background" Value="#33999999"/>
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding IsSpeechAnalysisActive}" Value="True">
+                                            <Setter Property="Foreground" Value="#FF6B47B1"/>
+                                            <Setter Property="Background" Value="#331A1A2E"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <!-- Close Button -->
+                        <Button x:Name="CloseButton"
+                                Click="OnCloseButtonClick"
+                                VerticalAlignment="Center"
+                                Width="20" Height="20"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="#AAA"
+                                FontFamily="Segoe UI" FontSize="14" FontWeight="Bold"
+                                Content="✕"
+                                ToolTip="Hide overlay">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#FF5555"/>
+                                            <Setter Property="Background" Value="#33FF5555"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <!-- ── Section Name (Large, Prominent) - Responsive Font Size ──── -->

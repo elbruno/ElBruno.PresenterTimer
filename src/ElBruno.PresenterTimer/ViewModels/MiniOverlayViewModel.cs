@@ -41,6 +41,9 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     // Next sections (for display in mini window)
     private List<SessionSection> _nextSections = [];
 
+    // Speech analysis
+    private bool _isSpeechAnalysisActive = false;
+
     // Alert message (transient, clears after AlertMessageDurationSeconds)
     private string _alertMessage                     = string.Empty;
     private bool   _isAlertMessageVisible;
@@ -190,6 +193,13 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _nextSections, (List<SessionSection>)value);
     }
 
+    /// <summary>Whether speech analysis is currently active (listening for microphone input).</summary>
+    public bool IsSpeechAnalysisActive
+    {
+        get => _isSpeechAnalysisActive;
+        private set => SetProperty(ref _isSpeechAnalysisActive, value);
+    }
+
     // ── Public methods ────────────────────────────────────────────────────────
 
     /// <summary>Called when the user drags the overlay window to persist its position.</summary>
@@ -207,6 +217,15 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     /// <summary>Restarts the current section from the beginning.</summary>
     public void RestartCurrentSection()
         => _dispatcher.BeginInvoke(() => _timerService.RestartCurrentSection());
+
+    /// <summary>Toggles speech analysis on/off.</summary>
+    public void ToggleSpeechAnalysis()
+    {
+        _dispatcher.BeginInvoke(() =>
+        {
+            IsSpeechAnalysisActive = !IsSpeechAnalysisActive;
+        });
+    }
 
     /// <summary>
     /// Applies updated overlay style settings live without restarting the session.

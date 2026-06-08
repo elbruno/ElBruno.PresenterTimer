@@ -485,7 +485,108 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- ── ADVANCED ─────────────────────────────────────────────────── -->
+            <!-- ── SPEECH ANALYSIS ──────────────────────────────────────────── -->
+            <TabItem Header="Speech Analysis">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,12,16,12">
+
+                        <TextBlock Text="Overview" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
+                        <TextBlock Text="Enable real-time speech analysis to match your presentation speech with session sections. The app will provide insights about topic relevance and upcoming sections in the mini window."
+                                   TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,0,0,14"/>
+
+                        <CheckBox Content="Enable speech analysis"
+                                  IsChecked="{Binding SpeechAnalysisEnabled}"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,0,12"/>
+
+                        <Separator Margin="0,10,0,10"/>
+
+                        <!-- Model Selection -->
+                        <TextBlock Text="Model Selection" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
+                        <TextBlock Text="Choose where speech analysis models run:"
+                                   TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,0,0,8"/>
+
+                        <RadioButton Content="Local Models (Whisper + ElBruno.LocalLLMs)"
+                                     GroupName="SpeechModelType"
+                                     IsChecked="{Binding SpeechModelTypeLocal}"
+                                     Margin="0,0,0,8"/>
+                        <StackPanel Margin="20,0,0,12" x:Name="LocalModelPanel">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Whisper Model Path:" VerticalAlignment="Center" Width="150"/>
+                                <TextBox Width="300" IsReadOnly="True" 
+                                         Text="{Binding LocalModelPath, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Button Content="Browse..." Command="{Binding BrowseLocalModelCommand}"
+                                        Padding="8,2" Margin="6,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Status: Not installed" 
+                                       Foreground="Orange" FontSize="11" Margin="0,0,0,8" x:Name="LocalModelStatus"/>
+                        </StackPanel>
+
+                        <RadioButton Content="Azure OpenAI"
+                                     GroupName="SpeechModelType"
+                                     IsChecked="{Binding SpeechModelTypeAzure}"
+                                     Margin="0,0,0,8"/>
+                        <StackPanel Margin="20,0,0,12" x:Name="AzureModelPanel" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Endpoint:" VerticalAlignment="Center" Width="150"/>
+                                <TextBox Width="300" Text="{Binding AzureOpenAIEndpoint, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="API Key:" VerticalAlignment="Center" Width="150"/>
+                                <PasswordBox x:Name="AzureKeyBox" Width="300"/>
+                            </StackPanel>
+                            <Button Content="Test Connection" Command="{Binding TestAzureConnectionCommand}"
+                                    Padding="10,5" Margin="0,0,0,8" Width="120" HorizontalAlignment="Left"/>
+                        </StackPanel>
+
+                        <RadioButton Content="Foundry (Hosted Models)"
+                                     GroupName="SpeechModelType"
+                                     IsChecked="{Binding SpeechModelTypeFoundry}"
+                                     Margin="0,0,0,8"/>
+                        <StackPanel Margin="20,0,0,12" x:Name="FoundryModelPanel" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Project ID:" VerticalAlignment="Center" Width="150"/>
+                                <TextBox Width="300" Text="{Binding FoundryProjectId, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                            <Button Content="Test Connection" Command="{Binding TestFoundryConnectionCommand}"
+                                    Padding="10,5" Margin="0,0,0,8" Width="120" HorizontalAlignment="Left"/>
+                        </StackPanel>
+
+                        <Separator Margin="0,10,0,10"/>
+
+                        <!-- Analysis Settings -->
+                        <TextBlock Text="Analysis Settings" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
+
+                        <StackPanel Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Analysis Sensitivity:" VerticalAlignment="Center" Width="150"/>
+                                <ComboBox Width="200" VerticalAlignment="Center"
+                                          ItemsSource="{Binding AvailableAnalysisSensitivities}"
+                                          SelectedValue="{Binding AnalysisSensitivity}"
+                                          SelectedValuePath="Value">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <TextBlock Text="Low = lenient matching, High = strict matching" 
+                                       TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <CheckBox Content="Show topic relevance score in mini window"
+                                  IsChecked="{Binding ShowTopicRelevance}"
+                                  Margin="0,0,0,6"/>
+                        <CheckBox Content="Show next section preview in mini window"
+                                  IsChecked="{Binding ShowNextSectionPreview}"
+                                  Margin="0,0,0,12"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ── ADVANCED ─────────────────────────────────────────────────– -->
             <TabItem Header="Advanced">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16,12,16,12">
