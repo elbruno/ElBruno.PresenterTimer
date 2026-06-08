@@ -76,7 +76,7 @@ public class TrayIconServiceTests
         {
             sut.Initialize();
 
-            var recentMenu = FindMenuItem(sut, "Plan / JSON", "Recent Sessions");
+            var recentMenu = FindMenuItem(sut, "Plan / JSON", "All Recent Sessions");
             InvokeRecentSessionsRefresh(sut, recentMenu);
 
             Assert.Equal(2, recentMenu.DropDownItems.Count);

@@ -284,6 +284,20 @@ public sealed class SettingsViewModel : ViewModelBase
         };
     }
 
+    /// <summary>Available overlay modes for user selection.</summary>
+    public sealed class OverlayModeOption
+    {
+        public required string Value { get; init; }
+        public required string DisplayName { get; init; }
+    }
+
+    /// <summary>List of available overlay mode options.</summary>
+    public IReadOnlyList<OverlayModeOption> AvailableOverlayModes => new[]
+    {
+        new OverlayModeOption { Value = "FullTimeline", DisplayName = "Full Timeline - Horizontal bar overlay" },
+        new OverlayModeOption { Value = "Mini", DisplayName = "Mini Window - Compact resizable window" }
+    };
+
     private string _position = "TopCenter";
     public string Position
     {

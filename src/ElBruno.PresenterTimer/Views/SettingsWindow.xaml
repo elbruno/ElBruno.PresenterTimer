@@ -53,10 +53,19 @@
 
                         <Separator Margin="0,10,0,10"/>
 
-                        <TextBlock Text="Display" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
+                        <TextBlock Text="Display Mode" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="Current Display Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBlock Text="{Binding CurrentOverlayModeDisplayLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#0078D4"/>
+                            <TextBlock Text="Overlay Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Width="320" VerticalAlignment="Center"
+                                      ItemsSource="{Binding AvailableOverlayModes}"
+                                      SelectedValuePath="Value"
+                                      SelectedValue="{Binding OverlayMode}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
 
                     </StackPanel>
