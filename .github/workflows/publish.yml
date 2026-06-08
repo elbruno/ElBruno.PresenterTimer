@@ -19,6 +19,9 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build-test-pack:
     runs-on: windows-latest
@@ -84,3 +87,61 @@ jobs:
           for pkg in artifacts/*.nupkg; do
             dotnet nuget push "$pkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
+
+  create-release:
+    needs: publish-nuget
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 0
+
+      - name: Extract version and generate release notes
+       id: release-info
+       shell: bash
+       run: |
+         VERSION="${GITHUB_REF#refs/tags/}"
+         echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+         # Get previous tag for changelog
+         PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+         if [ -z "$PREV_TAG" ]; then
+           # First release - use all commits
+           CHANGELOG=$(git log --pretty="- %s (%h)" --reverse)
+         else
+           # Get commits since last tag
+           CHANGELOG=$(git log "$PREV_TAG..$VERSION" --pretty="- %s (%h)" --reverse)
+         fi
+          
+         # Escape newlines for GitHub Actions output
+         CHANGELOG="${CHANGELOG//'%'/'%25'}"
+         CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+         CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+         echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+       uses: softprops/action-gh-release@v1
+       with:
+         tag_name: ${{ steps.release-info.outputs.version }}
+         name: ${{ steps.release-info.outputs.version }} - ElBruno.PresenterTimer
+         body: |
+           ## Release ${{ steps.release-info.outputs.version }}
+            
+           ### 📦 NuGet Package
+           Published to: https://www.nuget.org/packages/ElBruno.PresenterTimer/${{ steps.release-info.outputs.version }}
+            
+           Install or update:
+           ```bash
+           dotnet tool install --global ElBruno.PresenterTimer --version ${{ steps.release-info.outputs.version }}
+           # or
+           dotnet tool update --global ElBruno.PresenterTimer
+           ```
+            
+           ### 📝 Changelog
+           ${{ steps.release-info.outputs.changelog }}
+         draft: false
+         prerelease: false
