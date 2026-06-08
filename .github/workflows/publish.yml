@@ -96,36 +96,36 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-       uses: actions/checkout@v4
-       with:
-         fetch-depth: 0
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Extract version and generate release notes
-       id: release-info
-       shell: bash
-       run: |
-         VERSION="${GITHUB_REF#refs/tags/}"
-         echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-         # Get previous tag for changelog
-         PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-         if [ -z "$PREV_TAG" ]; then
-           # First release - use all commits
-           CHANGELOG=$(git log --pretty="- %s (%h)" --reverse)
-         else
-           # Get commits since last tag
-           CHANGELOG=$(git log "$PREV_TAG..$VERSION" --pretty="- %s (%h)" --reverse)
-         fi
-          
-         # Escape newlines for GitHub Actions output
-         CHANGELOG="${CHANGELOG//'%'/'%25'}"
-         CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-         CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-         echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+        id: release-info
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+          # Get previous tag for changelog
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            # First release - use all commits
+            CHANGELOG=$(git log --pretty="- %s (%h)" --reverse)
+          else
+            # Get commits since last tag
+            CHANGELOG=$(git log "$PREV_TAG..$VERSION" --pretty="- %s (%h)" --reverse)
+          fi
+            
+          # Escape newlines for GitHub Actions output
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-       uses: softprops/action-gh-release@v1
-       with:
+        uses: softprops/action-gh-release@v1
+        with:
          tag_name: ${{ steps.release-info.outputs.version }}
          name: ${{ steps.release-info.outputs.version }} - ElBruno.PresenterTimer
          body: |
