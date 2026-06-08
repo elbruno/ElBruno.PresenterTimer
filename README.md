@@ -22,6 +22,11 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.4.0 — Improved Settings UI & Recent Files Management**
+  - Overlay mode selection now editable in Settings (dropdown to switch between Full Timeline and Mini Window)
+  - Recent Files reorganized into two menu sections for better UX:
+    - Quick Sessions submenu (last 3 sessions for fast access)
+    - All Recent Sessions submenu (complete list of up to 10 sessions)
 - ✨ **v0.3.0 — Stop Session & Recent Files Quick Access**
   - New Stop Session action to reset session without reloading JSON (sections restart from 0, elapsed time resets to 0)
   - Recent Files quick-access menu showing last 3 sessions for quick reload
