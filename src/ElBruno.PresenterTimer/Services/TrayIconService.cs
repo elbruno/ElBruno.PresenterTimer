@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using ElBruno.PresenterTimer.Abstractions;
@@ -53,6 +54,8 @@ public sealed class TrayIconService : ITrayIconService
     private ToolStripMenuItem? _pauseResumeItem;
     // ── Recent Sessions submenu item (rebuilt dynamically on open) ────────────
     private ToolStripMenuItem? _recentSessionsItem;
+    // ── Quick Sessions separator and container items ─────────────────────────
+    private List<ToolStripItem>? _quickSessionItems;
 
     /// <summary>
     /// Exposes the underlying <see cref="NotifyIcon"/> so other services (e.g.
@@ -131,6 +134,7 @@ public sealed class TrayIconService : ITrayIconService
     public void Initialize()
     {
         _contextMenu = BuildContextMenu();
+        _contextMenu.Opening += OnContextMenuOpening;
 
         _notifyIcon = new NotifyIcon
         {
@@ -200,6 +204,11 @@ public sealed class TrayIconService : ITrayIconService
         sessionMenu.DropDownItems.Add(MakeItem("Reset Session", OnResetSession));
         sessionMenu.DropDownItems.Add(MakeItem("Stop Session", OnStopSession));
         menu.Items.Add(sessionMenu);
+
+        // Quick Sessions section (rebuilt on menu opening)
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add(new ToolStripLabel("Quick Sessions") { Enabled = false });
+        _quickSessionItems = new List<ToolStripItem>();
 
         var sectionMenu = new ToolStripMenuItem("Sections");
         sectionMenu.DropDownItems.Add(MakeItem("Next Section", OnNextSection));
@@ -391,6 +400,47 @@ public sealed class TrayIconService : ITrayIconService
             var capturedPath = path;
             item.Click += (_, _) => LoadRecentSession(capturedPath);
             _recentSessionsItem.DropDownItems.Add(item);
+        }
+    }
+
+    /// <summary>Rebuilds quick-access items (last 3 recent sessions) when context menu opens.</summary>
+    private void OnContextMenuOpening(object? sender, EventArgs e)
+    {
+        if (_contextMenu is null || _quickSessionItems is null) return;
+
+        // Remove all quick session items added in the previous opening
+        foreach (var item in _quickSessionItems)
+        {
+            _contextMenu.Items.Remove(item);
+        }
+        _quickSessionItems.Clear();
+
+        // Get up to 3 most recent sessions
+        var recentPaths = _recentSessionsService.GetExisting().Take(3).ToList();
+
+        if (recentPaths.Count == 0)
+        {
+            // No recent sessions to display
+            return;
+        }
+
+        // Add quick-access items to the menu
+        foreach (var path in recentPaths)
+        {
+            var filename = Path.GetFileName(path);
+            var directory = Path.GetDirectoryName(path) ?? "(unknown)";
+            var displayText = $"{filename} ({directory})";
+
+            var item = new ToolStripMenuItem(displayText);
+            var capturedPath = path;
+            item.Click += (_, _) =>
+            {
+                if (_recentSessionsService.Exists(capturedPath))
+                    LoadRecentSession(capturedPath);
+            };
+
+            _contextMenu.Items.Add(item);
+            _quickSessionItems.Add(item);
         }
     }
 
