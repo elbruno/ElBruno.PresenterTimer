@@ -22,6 +22,10 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.3.0 — Stop Session & Recent Files Quick Access**
+  - New Stop Session action to reset session without reloading JSON (sections restart from 0, elapsed time resets to 0)
+  - Recent Files quick-access menu showing last 3 sessions for quick reload
+  - Display current overlay mode in Settings General section
 - ✨ **v0.2.0 — Mini Window Overlay** — New compact overlay mode as alternative to full timeline bar
   - Resizable, transparent window with section name and remaining times
   - Live overlay mode switching in settings (no app restart needed)
@@ -38,12 +42,12 @@ Choose between two overlay modes:
 - **JSON-driven session plans** — define your session title, sections, durations, notes, colors, and warning thresholds in a simple JSON file.
 - **Live section tracking** — current section is highlighted; progress displayed across the full session.
 - **Visual state indicators** — tray icon color reflects app state: Gray (no session), Blue (loaded), Green (running), Yellow (warning), Red (overtime).
-- **Timer controls** — start, pause, resume, reset, next/previous section, restart current section, and extend by ±1 or ±5 minutes.
+- **Timer controls** — start, pause, resume, reset, stop, next/previous section, restart current section, and extend by ±1 or ±5 minutes.
 - **Configurable alerts** — section warning, section end, session end, and overtime alerts with optional audio and Windows notifications.
 - **Session preview** — review the full plan before starting.
 - **In-app Session Plan Editor** — create and edit session title, metadata, and sections (duration, notes, color, warning) with live validation and JSON save/open.
 - **Session summary** — post-session recap with planned vs. actual times per section; export to clipboard, Markdown, or JSON.
-- **Recent sessions** — quick reload of up to 10 previously used session files.
+- **Recent sessions** — quick reload of up to 10 previously used session files (including quick-access menu showing last 3 sessions).
 - **Settings persistence** — all preferences saved to `%AppData%\ElBruno.PresenterTimer\settings.json` (theme, colors, opacity, overlay position, alert behavior, hotkey enablement).
 - **Settings UI** — dedicated window to configure overlay appearance, alert behavior, auto-advance, and more.
 
