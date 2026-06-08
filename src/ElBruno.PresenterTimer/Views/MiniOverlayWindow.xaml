@@ -10,7 +10,7 @@
         Background="Transparent"
         ResizeMode="CanResizeWithGrip"
         Width="320"
-        Height="400"
+        Height="440"
         Opacity="{Binding OverlayOpacity}">
 
     <Window.Resources>
@@ -130,6 +130,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Section Remaining Time -->
@@ -274,6 +275,22 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
+                    <Border Grid.Row="4"
+                            Margin="0,0,0,8"
+                            Padding="8,6"
+                            CornerRadius="4"
+                            Background="#12000000"
+                            BorderBrush="{Binding InsightColor}"
+                            BorderThickness="1"
+                            Visibility="{Binding InsightVisibility}">
+                        <TextBlock Text="{Binding InsightMessage}"
+                                   Foreground="{Binding InsightColor}"
+                                   FontFamily="Segoe UI"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap"/>
+                    </Border>
                 </Grid>
 
                 <!-- ── Mini Progress Bar at Bottom ────────────────────────────── -->

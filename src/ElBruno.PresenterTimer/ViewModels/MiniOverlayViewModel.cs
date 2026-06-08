@@ -1,6 +1,9 @@
 using System.Windows.Threading;
+using System.Windows;
 using ElBruno.PresenterTimer.Abstractions;
 using ElBruno.PresenterTimer.Models;
+using MediaBrush = System.Windows.Media.Brush;
+using MediaBrushes = System.Windows.Media.Brushes;
 
 namespace ElBruno.PresenterTimer.ViewModels;
 
@@ -23,6 +26,7 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     private readonly Dispatcher              _dispatcher;
     private readonly Action<double, double>? _onPositionChanged;
     private readonly double                  _totalDurationSeconds;
+    private readonly ISpeechAnalysisService? _speechAnalysisService;
 
     // ── Backing fields ────────────────────────────────────────────────────────
     private string _sessionTitle                     = string.Empty;
@@ -43,6 +47,10 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
 
     // Speech analysis
     private bool _isSpeechAnalysisActive = false;
+    private string _insightMessage = string.Empty;
+    private MediaBrush _insightColor = MediaBrushes.Transparent;
+    private Visibility _insightVisibility = Visibility.Collapsed;
+    private readonly DispatcherTimer _insightTimer;
 
     // Alert message (transient, clears after AlertMessageDurationSeconds)
     private string _alertMessage                     = string.Empty;
@@ -65,12 +73,14 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         SessionPlan             plan,
         AppSettings             settings,
         Dispatcher              dispatcher,
+        ISpeechAnalysisService? speechAnalysisService = null,
         Action<double, double>? onPositionChanged = null)
     {
         _timerService       = timerService;
         _plan               = plan;
         _settings           = settings;
         _dispatcher         = dispatcher;
+        _speechAnalysisService = speechAnalysisService;
         _onPositionChanged  = onPositionChanged;
 
         _totalDurationSeconds = plan.Sections.Sum(s => s.Duration.TotalSeconds);
@@ -86,10 +96,21 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         // Alert message auto-clear timer (runs on WPF dispatcher — created on UI thread)
         _alertMessageTimer          = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
         _alertMessageTimer.Tick    += OnAlertMessageTimerTick;
+        _insightTimer               = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        _insightTimer.Tick         += OnInsightTimerTick;
 
         _timerService.Tick           += OnTimerTick;
         _timerService.SectionChanged += OnSectionChanged;
         _timerService.StateChanged   += OnStateChanged;
+
+        if (_speechAnalysisService is not null)
+        {
+            _speechAnalysisService.TranscriptionReceived += OnTranscriptionReceived;
+            _speechAnalysisService.AnalysisReceived += OnAnalysisReceived;
+            _speechAnalysisService.AlertRaised += OnSpeechAlertRaised;
+            _speechAnalysisService.UpdatePresentationContext(_plan, 0);
+            IsSpeechAnalysisActive = _speechAnalysisService.IsListening;
+        }
     }
 
     // ── Bound properties ──────────────────────────────────────────────────────
@@ -200,6 +221,24 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _isSpeechAnalysisActive, value);
     }
 
+    public string InsightMessage
+    {
+        get => _insightMessage;
+        private set => SetProperty(ref _insightMessage, value);
+    }
+
+    public MediaBrush InsightColor
+    {
+        get => _insightColor;
+        private set => SetProperty(ref _insightColor, value);
+    }
+
+    public Visibility InsightVisibility
+    {
+        get => _insightVisibility;
+        private set => SetProperty(ref _insightVisibility, value);
+    }
+
     // ── Public methods ────────────────────────────────────────────────────────
 
     /// <summary>Called when the user drags the overlay window to persist its position.</summary>
@@ -208,23 +247,38 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
 
     /// <summary>Pauses the current running session.</summary>
     public void PauseSession()
-        => _dispatcher.BeginInvoke(() => _timerService.Pause());
+        => RunOnDispatcher(() => _timerService.Pause());
 
     /// <summary>Resumes a paused session.</summary>
     public void ResumeSession()
-        => _dispatcher.BeginInvoke(() => _timerService.Resume());
+        => RunOnDispatcher(() => _timerService.Resume());
 
     /// <summary>Restarts the current section from the beginning.</summary>
     public void RestartCurrentSection()
-        => _dispatcher.BeginInvoke(() => _timerService.RestartCurrentSection());
+        => RunOnDispatcher(() => _timerService.RestartCurrentSection());
 
     /// <summary>Toggles speech analysis on/off.</summary>
-    public void ToggleSpeechAnalysis()
+    public async Task ToggleSpeechAnalysisAsync()
     {
-        _dispatcher.BeginInvoke(() =>
+        if (_speechAnalysisService is null)
         {
-            IsSpeechAnalysisActive = !IsSpeechAnalysisActive;
-        });
+            ShowInsight("Speech analysis service is unavailable.", MediaBrushes.OrangeRed);
+            return;
+        }
+
+        try
+        {
+            if (_speechAnalysisService.IsListening)
+                await _speechAnalysisService.StopListeningAsync().ConfigureAwait(false);
+            else
+                await _speechAnalysisService.StartListeningAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            ShowInsight($"Speech analysis error: {ex.Message}", MediaBrushes.OrangeRed);
+        }
+
+        await RunOnDispatcherAsync(() => IsSpeechAnalysisActive = _speechAnalysisService.IsListening);
     }
 
     /// <summary>
@@ -232,7 +286,7 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     /// Called by <c>App</c> when the Settings window saves/applies.
     /// </summary>
     public void ApplyStyleSettings(OverlayStyleSettings style)
-        => _dispatcher.BeginInvoke(() =>
+        => RunOnDispatcher(() =>
         {
             OverlayOpacity = Math.Clamp(style.OverlayOpacity / 100.0, 0.1, 1.0);
         });
@@ -250,7 +304,7 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     /// </param>
     public void TriggerAlert(AlertEventArgs e, int durationSeconds, bool enablePulse)
     {
-        _dispatcher.BeginInvoke(() =>
+        RunOnDispatcher(() =>
         {
             AlertMessage          = e.Message;
             IsAlertMessageVisible = true;
@@ -275,14 +329,14 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     // ── Timer event handlers (thread-pool → dispatcher) ───────────────────────
 
     private void OnTimerTick(object? sender, TimerTickEventArgs e)
-        => _dispatcher.BeginInvoke(() => ApplyTick(e));
+        => RunOnDispatcher(() => ApplyTick(e));
 
     private void OnSectionChanged(object? sender, SectionChangedEventArgs e)
-        => _dispatcher.BeginInvoke(() => ApplySectionChange(e.CurrentSectionIndex));
+        => RunOnDispatcher(() => ApplySectionChange(e.CurrentSectionIndex));
 
     private void OnStateChanged(object? sender, EventArgs e)
     {
-        _dispatcher.BeginInvoke(() =>
+        RunOnDispatcher(() =>
         {
             IsPaused  = _timerService.IsPaused;
             IsRunning = _timerService.IsRunning;
@@ -331,6 +385,7 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         if (currentIdx >= 0 && currentIdx < _plan.Sections.Count)
         {
             CurrentSectionTitle = _plan.Sections[currentIdx].Title;
+            _speechAnalysisService?.UpdatePresentationContext(_plan, currentIdx);
             
             // Populate next sections (up to 4 upcoming sections after the current)
             var upcomingSections = new List<SessionSection>();
@@ -340,6 +395,71 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
             }
             NextSections = upcomingSections;
         }
+    }
+
+    private void OnTranscriptionReceived(object? sender, TranscriptionEventArgs e)
+    {
+        if (!_settings.SpeechAnalysis.ShowTopicRelevance)
+            return;
+
+        RunOnDispatcher(() =>
+        {
+            if (InsightVisibility == Visibility.Visible)
+                RestartInsightTimer();
+        });
+    }
+
+    private void OnAnalysisReceived(object? sender, AnalysisEventArgs e)
+        => RunOnDispatcher(() =>
+        {
+            MediaBrush brush = e.TopicRelevanceScore switch
+            {
+                >= 0.75 => MediaBrushes.LightGreen,
+                >= 0.45 => MediaBrushes.Orange,
+                _ => MediaBrushes.OrangeRed
+            };
+
+            string message = e.IsOnTopic
+                ? $"📊 {Math.Round(e.TopicRelevanceScore * 100)}% on-topic"
+                : e.TopicRelevanceScore >= 0.45
+                    ? "⚠️ Drifting from topic"
+                    : "🛑 Off-topic content detected";
+
+            if (!string.IsNullOrWhiteSpace(e.Insight))
+                message = e.Insight;
+
+            ShowInsight(message, brush);
+        });
+
+    private void OnSpeechAlertRaised(object? sender, AlertEventArgs e)
+        => RunOnDispatcher(() =>
+        {
+            ShowInsight(e.Message, MediaBrushes.OrangeRed);
+            if (_speechAnalysisService is not null)
+                IsSpeechAnalysisActive = _speechAnalysisService.IsListening;
+        });
+
+    private void ShowInsight(string message, MediaBrush color)
+    {
+        InsightMessage = message;
+        InsightColor = color;
+        InsightVisibility = string.IsNullOrWhiteSpace(message) ? Visibility.Collapsed : Visibility.Visible;
+        RestartInsightTimer();
+    }
+
+    private void RestartInsightTimer()
+    {
+        _insightTimer.Stop();
+        _insightTimer.Interval = TimeSpan.FromSeconds(5);
+        _insightTimer.Start();
+    }
+
+    private void OnInsightTimerTick(object? sender, EventArgs e)
+    {
+        _insightTimer.Stop();
+        InsightMessage = string.Empty;
+        InsightVisibility = Visibility.Collapsed;
+        InsightColor = MediaBrushes.Transparent;
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -358,13 +478,43 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         return TimeSpan.TryParseExact(value, @"hh\:mm\:ss", null, out var ts) ? ts : fallback;
     }
 
+    private void RunOnDispatcher(Action action)
+    {
+        if (_dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        _dispatcher.BeginInvoke(action);
+    }
+
+    private Task RunOnDispatcherAsync(Action action)
+    {
+        if (_dispatcher.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(action).Task;
+    }
+
     public void Dispose()
     {
         _alertMessageTimer.Stop();
         _alertMessageTimer.Tick -= OnAlertMessageTimerTick;
+        _insightTimer.Stop();
+        _insightTimer.Tick -= OnInsightTimerTick;
 
         _timerService.Tick           -= OnTimerTick;
         _timerService.SectionChanged -= OnSectionChanged;
         _timerService.StateChanged   -= OnStateChanged;
+        if (_speechAnalysisService is not null)
+        {
+            _speechAnalysisService.TranscriptionReceived -= OnTranscriptionReceived;
+            _speechAnalysisService.AnalysisReceived -= OnAnalysisReceived;
+            _speechAnalysisService.AlertRaised -= OnSpeechAlertRaised;
+        }
     }
 }

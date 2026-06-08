@@ -1,3 +1,5 @@
+using ElBruno.PresenterTimer.Models;
+
 namespace ElBruno.PresenterTimer.Abstractions;
 
 /// <summary>
@@ -24,6 +26,9 @@ public interface ISpeechAnalysisService : IDisposable
 
     /// <summary>Fired when an alert is raised (e.g., off-topic detected).</summary>
     event EventHandler<AlertEventArgs>? AlertRaised;
+
+    /// <summary>Updates the active presentation context used to evaluate topic relevance.</summary>
+    void UpdatePresentationContext(SessionPlan? plan, int currentSectionIndex);
 }
 
 /// <summary>Arguments for transcription events.</summary>

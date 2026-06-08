@@ -12,4 +12,13 @@
     <AssemblyName>ElBruno.PresenterTimer</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ElBruno.LocalLLMs" Version="0.18.0" />
+    <PackageReference Include="ElBruno.Whisper" Version="0.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
+  </ItemGroup>
+
 </Project>

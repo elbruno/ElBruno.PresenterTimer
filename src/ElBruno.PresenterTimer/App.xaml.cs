@@ -6,6 +6,8 @@ using ElBruno.PresenterTimer.Models;
 using ElBruno.PresenterTimer.Services;
 using ElBruno.PresenterTimer.ViewModels;
 using ElBruno.PresenterTimer.Views;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ElBruno.PresenterTimer;
 
@@ -34,8 +36,10 @@ public partial class App : Application
     private SoundAlertService?          _soundAlertService;
     private SystemNotificationService?  _notificationService;
 
-    // ── Speech analysis service (app-lifetime; disabled by default in Phase 1) ──
-    private SpeechAnalysisService?      _speechAnalysisService;
+    // ── Speech analysis service ────────────────────────────────────────────────
+    private IServiceProvider?           _sessionServiceProvider;
+    private ILoggerFactory?             _loggerFactory;
+    private ISpeechAnalysisService?     _speechAnalysisService;
 
     // ── Session summary state ─────────────────────────────────────────────────
     /// <summary>Result from the most recently completed session; used by "Open Session Summary".</summary>
@@ -71,8 +75,7 @@ public partial class App : Application
         // ── Sound service (app-lifetime; PlayTestSound ignores IsEnabled flag) ───
         _soundAlertService = new SoundAlertService(_settingsService.Settings.Alerts);
 
-        // ── Speech analysis service (app-lifetime; disabled by default in Phase 1) ──
-        _speechAnalysisService = new SpeechAnalysisService();
+        _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
 
         // ── Tray icon ───────────────────────────────────────────────────────────
         _trayIconService = new TrayIconService(
@@ -140,7 +143,11 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        TearDownSpeechAnalysisService();
         TearDownAlertServices();
+        if (_sessionServiceProvider is IDisposable disposableProvider)
+            disposableProvider.Dispose();
+        _loggerFactory?.Dispose();
         _timerService?.Dispose();
         _trayIconService?.Dispose();
         base.OnExit(e);
@@ -170,6 +177,7 @@ public partial class App : Application
             _timerService = null;
         }
 
+        TearDownSpeechAnalysisService();
         TearDownAlertServices();
         CloseOverlay();
 
@@ -194,6 +202,7 @@ public partial class App : Application
 
         _alertService.Attach(_timerService);
         _alertService.AlertRaised += OnAlertRaised;
+        RegisterSpeechAnalysisService(settings);
 
         // ── Create overlay window based on current mode setting ──────────────
         _currentOverlayMode = settings.OverlayLayout.OverlayMode;
@@ -416,6 +425,36 @@ public partial class App : Application
         _soundAlertService = null;
     }
 
+    private void RegisterSpeechAnalysisService(AppSettings settings)
+    {
+        if (_alertService is null || _loggerFactory is null)
+            return;
+
+        if (_sessionServiceProvider is IDisposable disposableProvider)
+            disposableProvider.Dispose();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(settings);
+        services.AddSingleton<IAlertService>(_alertService);
+        services.AddSingleton(_loggerFactory);
+        services.AddSingleton(_loggerFactory.CreateLogger<SpeechAnalysisService>());
+        services.AddSingleton<ISpeechAnalysisService, SpeechAnalysisService>();
+
+        _sessionServiceProvider = services.BuildServiceProvider();
+        _speechAnalysisService = _sessionServiceProvider.GetRequiredService<ISpeechAnalysisService>();
+        _speechAnalysisService.AlertRaised += OnAlertRaised;
+    }
+
+    private void TearDownSpeechAnalysisService()
+    {
+        if (_speechAnalysisService is not null)
+        {
+            _speechAnalysisService.AlertRaised -= OnAlertRaised;
+            _speechAnalysisService.Dispose();
+            _speechAnalysisService = null;
+        }
+    }
+
     // ---------------------------------------------------------------------------
     // Overlay positioning helpers (uses WindowPlacementService — PRD §7.7 / §7.18)
     // ---------------------------------------------------------------------------
@@ -493,6 +532,7 @@ public partial class App : Application
             plan,
             settings,
             Dispatcher,
+            _speechAnalysisService,
             OnMiniOverlayPositionChanged);
 
         _miniOverlayWindow = new MiniOverlayWindow { DataContext = vm };
@@ -720,15 +760,18 @@ public partial class App : Application
         var newMode = _settingsService!.Settings.OverlayLayout.OverlayMode;
         if (newMode != _currentOverlayMode && _timerService is not null)
         {
+            if (_timerService.Plan is not SessionPlan activePlan)
+                return;
+
             // Close current overlay and create new one of different type
             CloseOverlay();
             if (newMode == "Mini")
             {
-                CreateMiniOverlay(_timerService.Plan, _settingsService.Settings);
+                CreateMiniOverlay(activePlan, _settingsService.Settings);
             }
             else
             {
-                CreateFullTimelineOverlay(_timerService.Plan, _settingsService.Settings);
+                CreateFullTimelineOverlay(activePlan, _settingsService.Settings);
             }
 
             // Show the new overlay if it should be visible

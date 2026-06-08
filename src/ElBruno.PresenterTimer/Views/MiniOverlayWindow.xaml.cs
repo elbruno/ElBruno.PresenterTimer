@@ -21,6 +21,8 @@ public partial class MiniOverlayWindow : Window
 {
     private Storyboard? _pulseStoryboard;
     private bool _allowClose;
+    private MiniOverlayViewModel? _subscribedVm;
+    private PropertyChangedEventHandler? _progressChangedHandler;
 
     public MiniOverlayWindow()
     {
@@ -41,11 +43,29 @@ public partial class MiniOverlayWindow : Window
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.OldValue is MiniOverlayViewModel oldVm)
-            oldVm.PulseRequested -= OnPulseRequested;
+        if (_subscribedVm is not null)
+        {
+            _subscribedVm.PulseRequested -= OnPulseRequested;
+            if (_progressChangedHandler is not null)
+                _subscribedVm.PropertyChanged -= _progressChangedHandler;
+        }
 
         if (e.NewValue is MiniOverlayViewModel newVm)
+        {
+            _subscribedVm = newVm;
             newVm.PulseRequested += OnPulseRequested;
+            _progressChangedHandler = (_, args) =>
+            {
+                if (args.PropertyName == nameof(MiniOverlayViewModel.SessionProgressFraction))
+                    UpdateProgressBar();
+            };
+            newVm.PropertyChanged += _progressChangedHandler;
+        }
+        else
+        {
+            _subscribedVm = null;
+            _progressChangedHandler = null;
+        }
     }
 
     private void OnPulseRequested(object? sender, EventArgs e)
@@ -113,21 +133,6 @@ public partial class MiniOverlayWindow : Window
         progressFill.Width = Math.Max(0, availableWidth * vm.SessionProgressFraction);
     }
 
-    // Subscribe to progress changes
-    private void OnDataContextChanged()
-    {
-        if (DataContext is MiniOverlayViewModel vm)
-        {
-            vm.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(MiniOverlayViewModel.SessionProgressFraction))
-                {
-                    UpdateProgressBar();
-                }
-            };
-        }
-    }
-
     // ── Drag-to-move ──────────────────────────────────────────────────────────
 
     private void OnMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -158,10 +163,10 @@ public partial class MiniOverlayWindow : Window
             vm.RestartCurrentSection();
     }
 
-    private void OnMicrophoneToggleClick(object sender, RoutedEventArgs e)
+    private async void OnMicrophoneToggleClick(object sender, RoutedEventArgs e)
     {
         if (DataContext is MiniOverlayViewModel vm)
-            vm.ToggleSpeechAnalysis();
+            await vm.ToggleSpeechAnalysisAsync();
     }
 
     // ── Position persistence ──────────────────────────────────────────────────
