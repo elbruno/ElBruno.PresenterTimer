@@ -264,7 +264,24 @@ public sealed class SettingsViewModel : ViewModelBase
     public string OverlayMode
     {
         get => _overlayMode;
-        set => SetProperty(ref _overlayMode, value);
+        set
+        {
+            if (SetProperty(ref _overlayMode, value))
+            {
+                OnPropertyChanged(nameof(CurrentOverlayModeDisplayLabel));
+            }
+        }
+    }
+
+    /// <summary>Returns a human-readable description of the current overlay mode.</summary>
+    public string CurrentOverlayModeDisplayLabel
+    {
+        get => _overlayMode switch
+        {
+            "FullTimeline" => "Full Timeline - Horizontal bar overlay",
+            "Mini" => "Mini Window - Compact resizable window",
+            _ => "Unknown mode"
+        };
     }
 
     private string _position = "TopCenter";

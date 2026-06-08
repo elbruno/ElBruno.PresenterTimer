@@ -51,6 +51,14 @@
                                   IsChecked="{Binding ConfirmBeforeExitWhileRunning}"
                                   Margin="0,0,0,6"/>
 
+                        <Separator Margin="0,10,0,10"/>
+
+                        <TextBlock Text="Display" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="Current Display Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding CurrentOverlayModeDisplayLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#0078D4"/>
+                        </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
