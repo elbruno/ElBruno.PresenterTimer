@@ -22,6 +22,18 @@ Choose between two overlay modes:
 
 ## What's New
 
+- ✨ **v0.7.0 — Enhanced Mini Window with Controls & Next Sections**
+  - Added Pause/Resume button (⏸/▶) in mini window for quick session control
+  - Added Restart Section button (⟲) to restart the current section
+  - Dynamic next sections list showing upcoming 2-4 sections for better session awareness
+  - Next sections list is scrollable and adapts to window size
+  - Improved window height to accommodate controls and sections display
+  - Button tooltips and hover effects for better UX
+- ✨ **v0.6.0 — Mini Window Responsive Text Scaling Fix**
+  - Fixed text resizing when mini window is resized
+  - Font scaling now properly adjusts all text elements in real-time as window dimensions change
+  - Improved scaling algorithm with better min/max clamping for smooth font progression
+  - Text remains readable at any window size from small to large
 - ✨ **v0.5.0 — Mini Window Enhancements**
   - Added close button (✕) to mini window for easy hiding without clicking away
   - Implemented responsive text sizing that adjusts font sizes when mini window is resized

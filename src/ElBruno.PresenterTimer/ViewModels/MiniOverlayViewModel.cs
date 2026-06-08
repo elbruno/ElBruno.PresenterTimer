@@ -37,6 +37,9 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
     private double _sessionProgressFraction          = 0.0;
     private string _overtimeDisplay                  = string.Empty;
 
+    // Next sections (for display in mini window)
+    private List<SessionSection> _nextSections = [];
+
     // Alert message (transient, clears after AlertMessageDurationSeconds)
     private string _alertMessage                     = string.Empty;
     private bool   _isAlertMessageVisible;
@@ -169,11 +172,30 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _isAlertMessageVisible, value);
     }
 
+    /// <summary>List of the next 2-4 upcoming sections (after the current one) for display in mini window.</summary>
+    public IReadOnlyList<SessionSection> NextSections
+    {
+        get => _nextSections;
+        private set => SetProperty(ref _nextSections, (List<SessionSection>)value);
+    }
+
     // ── Public methods ────────────────────────────────────────────────────────
 
     /// <summary>Called when the user drags the overlay window to persist its position.</summary>
     public void SavePosition(double left, double top)
         => _onPositionChanged?.Invoke(left, top);
+
+    /// <summary>Pauses the current running session.</summary>
+    public void PauseSession()
+        => _dispatcher.BeginInvoke(() => _timerService.Pause());
+
+    /// <summary>Resumes a paused session.</summary>
+    public void ResumeSession()
+        => _dispatcher.BeginInvoke(() => _timerService.Resume());
+
+    /// <summary>Restarts the current section from the beginning.</summary>
+    public void RestartCurrentSection()
+        => _dispatcher.BeginInvoke(() => _timerService.RestartCurrentSection());
 
     /// <summary>
     /// Applies updated overlay style settings live without restarting the session.
@@ -277,6 +299,14 @@ public sealed class MiniOverlayViewModel : ViewModelBase, IDisposable
         if (currentIdx >= 0 && currentIdx < _plan.Sections.Count)
         {
             CurrentSectionTitle = _plan.Sections[currentIdx].Title;
+            
+            // Populate next sections (up to 4 upcoming sections after the current)
+            var upcomingSections = new List<SessionSection>();
+            for (int i = currentIdx + 1; i < _plan.Sections.Count && upcomingSections.Count < 4; i++)
+            {
+                upcomingSections.Add(_plan.Sections[i]);
+            }
+            NextSections = upcomingSections;
         }
     }
 

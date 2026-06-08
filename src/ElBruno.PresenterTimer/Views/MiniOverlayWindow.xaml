@@ -10,7 +10,7 @@
         Background="Transparent"
         ResizeMode="CanResizeWithGrip"
         Width="320"
-        Height="200"
+        Height="400"
         Opacity="{Binding OverlayOpacity}">
 
     <Window.Resources>
@@ -41,7 +41,9 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -77,77 +79,153 @@
                     </Button>
                 </Grid>
 
-                <!-- ── Main Content Area ──────────────────────────────────────── -->
-                <Grid Grid.Row="1" VerticalAlignment="Center">
+                <!-- ── Section Name (Large, Prominent) - Responsive Font Size ──── -->
+                <TextBlock x:Name="SectionTitleBlock"
+                           Grid.Row="1"
+                           Text="{Binding CurrentSectionTitle}"
+                           FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                           Foreground="#64B5F6"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"
+                           TextAlignment="Center"
+                           TextTrimming="WordEllipsis"
+                           Margin="0,0,0,8"
+                           AutomationProperties.Name="{Binding CurrentSectionTitle, StringFormat='Current section: {0}'}"
+                           AutomationProperties.LiveSetting="Polite"/>
+
+                <!-- ── Time and Controls Panel ────────────────────────────────── -->
+                <Grid Grid.Row="2" VerticalAlignment="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Section Name (Large, Prominent) - Responsive Font Size -->
-                    <TextBlock x:Name="SectionTitleBlock"
-                               Grid.Row="0"
-                               Text="{Binding CurrentSectionTitle}"
-                               FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
-                               Foreground="#64B5F6"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Top"
-                               TextAlignment="Center"
-                               TextTrimming="WordEllipsis"
-                               Margin="0,0,0,12"
-                               AutomationProperties.Name="{Binding CurrentSectionTitle, StringFormat='Current section: {0}'}"
-                               AutomationProperties.LiveSetting="Polite"/>
+                    <!-- Section Remaining Time -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,8">
+                        <TextBlock x:Name="SectionLabelBlock"
+                                   Text="Section Remaining" 
+                                   FontFamily="Segoe UI" FontSize="11"
+                                   Foreground="#AAA"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,4"/>
+                        <TextBlock x:Name="SectionTimeBlock"
+                                   Text="{Binding CurrentSectionRemainingDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="#90CAF9"
+                                   HorizontalAlignment="Center"
+                                   AutomationProperties.Name="{Binding CurrentSectionRemainingDisplay, StringFormat='Section remaining: {0}'}"
+                                   AutomationProperties.LiveSetting="Polite"/>
+                    </StackPanel>
 
-                    <!-- Time Information Grid -->
-                    <Grid Grid.Row="1" VerticalAlignment="Center">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <!-- Session Remaining Time -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,8">
+                        <TextBlock x:Name="SessionLabelBlock"
+                                   Text="Session Remaining" 
+                                   FontFamily="Segoe UI" FontSize="10"
+                                   Foreground="#888"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,3"/>
+                        <TextBlock x:Name="SessionTimeBlock"
+                                   Text="{Binding SessionRemainingDisplay}"
+                                   FontFamily="Segoe UI Mono,Consolas" FontSize="14"
+                                   Foreground="#BDBDBD"
+                                   HorizontalAlignment="Center"
+                                   AutomationProperties.Name="{Binding SessionRemainingDisplay, StringFormat='Session remaining: {0}'}"
+                                   AutomationProperties.LiveSetting="Polite"/>
+                    </StackPanel>
 
-                        <!-- Section Remaining Time -->
-                        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,8">
-                            <TextBlock x:Name="SectionLabelBlock"
-                                       Text="Section Remaining" 
-                                       FontFamily="Segoe UI" FontSize="11"
-                                       Foreground="#AAA"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,4"/>
-                            <TextBlock x:Name="SectionTimeBlock"
-                                       Text="{Binding CurrentSectionRemainingDisplay}"
-                                       FontFamily="Segoe UI Mono,Consolas" FontSize="18" FontWeight="SemiBold"
-                                       Foreground="#90CAF9"
-                                       HorizontalAlignment="Center"
-                                       AutomationProperties.Name="{Binding CurrentSectionRemainingDisplay, StringFormat='Section remaining: {0}'}"
-                                       AutomationProperties.LiveSetting="Polite"/>
-                        </StackPanel>
+                    <!-- Control Buttons (Pause/Resume, Restart) -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,12">
+                        <!-- Pause/Resume Button -->
+                        <Button x:Name="PauseResumeButton"
+                                Click="OnPauseResumeButtonClick"
+                                Width="36" Height="36"
+                                Padding="0"
+                                Margin="0,0,4,0"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="#555"
+                                Foreground="#AAA"
+                                FontFamily="Segoe UI" FontSize="16"
+                                ToolTip="Pause/Resume">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="⏸"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                            <Setter Property="Content" Value="▶"/>
+                                            <Setter Property="ToolTip" Value="Resume"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#FFF"/>
+                                            <Setter Property="BorderBrush" Value="#777"/>
+                                            <Setter Property="Background" Value="#1A1A1A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
 
-                        <!-- Session Remaining Time -->
-                        <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                            <TextBlock x:Name="SessionLabelBlock"
-                                       Text="Session Remaining" 
-                                       FontFamily="Segoe UI" FontSize="10"
-                                       Foreground="#888"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,3"/>
-                            <TextBlock x:Name="SessionTimeBlock"
-                                       Text="{Binding SessionRemainingDisplay}"
-                                       FontFamily="Segoe UI Mono,Consolas" FontSize="14"
-                                       Foreground="#BDBDBD"
-                                       HorizontalAlignment="Center"
-                                       AutomationProperties.Name="{Binding SessionRemainingDisplay, StringFormat='Session remaining: {0}'}"
-                                       AutomationProperties.LiveSetting="Polite"/>
-                        </StackPanel>
-                    </Grid>
+                        <!-- Restart Section Button -->
+                        <Button x:Name="RestartButton"
+                                Click="OnRestartButtonClick"
+                                Width="36" Height="36"
+                                Padding="0"
+                                Margin="4,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="#555"
+                                Foreground="#AAA"
+                                FontFamily="Segoe UI" FontSize="16"
+                                Content="⟲"
+                                ToolTip="Restart section">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#FFF"/>
+                                            <Setter Property="BorderBrush" Value="#777"/>
+                                            <Setter Property="Background" Value="#1A1A1A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Next Sections List (Scrollable) -->
+                    <ScrollViewer Grid.Row="3" 
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Margin="0,0,0,8">
+                        <ItemsControl x:Name="NextSectionsControl" ItemsSource="{Binding NextSections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#0A0A0A" 
+                                            CornerRadius="3"
+                                            BorderBrush="#444"
+                                            BorderThickness="1"
+                                            Padding="6"
+                                            Margin="0,0,0,4">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontFamily="Segoe UI" FontSize="9"
+                                                   Foreground="#AAA"
+                                                   TextTrimming="WordEllipsis"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </Grid>
 
                 <!-- ── Mini Progress Bar at Bottom ────────────────────────────── -->
-                <Border Grid.Row="2"
+                <Border Grid.Row="3"
                         Background="#1A1A1A"
                         CornerRadius="2"
                         Height="6"
-                        Margin="0,12,0,0"
+                        Margin="0,0,0,8"
                         BorderBrush="#444"
                         BorderThickness="1">
 
@@ -159,6 +237,8 @@
                                    IsHitTestVisible="False"/>
                     </Grid>
                 </Border>
+
+                <!-- Empty row 4 for spacing -->
             </Grid>
         </Border>
 

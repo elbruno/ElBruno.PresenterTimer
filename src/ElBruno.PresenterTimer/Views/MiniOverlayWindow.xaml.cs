@@ -65,31 +65,37 @@ public partial class MiniOverlayWindow : Window
     private void UpdateResponsiveFonts()
     {
         // Scale fonts based on window width
-        double scale = ActualWidth / 320.0; // 320 is the default width
+        // Default width is 320; scale proportionally
+        double scale = ActualWidth / 320.0;
         
         if (FindName("SectionTitleBlock") is TextBlock sectionTitle)
         {
-            sectionTitle.FontSize = Math.Max(12, Math.Min(20, 20 * scale));
+            double fontSize = 20 * scale;
+            sectionTitle.FontSize = Math.Max(12, Math.Min(28, fontSize));
         }
         
         if (FindName("SectionLabelBlock") is TextBlock sectionLabel)
         {
-            sectionLabel.FontSize = Math.Max(8, Math.Min(11, 11 * scale));
+            double fontSize = 11 * scale;
+            sectionLabel.FontSize = Math.Max(7, Math.Min(16, fontSize));
         }
         
         if (FindName("SectionTimeBlock") is TextBlock sectionTime)
         {
-            sectionTime.FontSize = Math.Max(12, Math.Min(18, 18 * scale));
+            double fontSize = 18 * scale;
+            sectionTime.FontSize = Math.Max(12, Math.Min(24, fontSize));
         }
         
         if (FindName("SessionLabelBlock") is TextBlock sessionLabel)
         {
-            sessionLabel.FontSize = Math.Max(7, Math.Min(10, 10 * scale));
+            double fontSize = 10 * scale;
+            sessionLabel.FontSize = Math.Max(7, Math.Min(14, fontSize));
         }
         
         if (FindName("SessionTimeBlock") is TextBlock sessionTime)
         {
-            sessionTime.FontSize = Math.Max(10, Math.Min(14, 14 * scale));
+            double fontSize = 14 * scale;
+            sessionTime.FontSize = Math.Max(10, Math.Min(18, fontSize));
         }
     }
 
@@ -133,6 +139,23 @@ public partial class MiniOverlayWindow : Window
     private void OnCloseButtonClick(object sender, RoutedEventArgs e)
     {
         Hide();
+    }
+
+    private void OnPauseResumeButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MiniOverlayViewModel vm)
+        {
+            if (vm.IsPaused)
+                vm.ResumeSession();
+            else
+                vm.PauseSession();
+        }
+    }
+
+    private void OnRestartButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MiniOverlayViewModel vm)
+            vm.RestartCurrentSection();
     }
 
     // ── Position persistence ──────────────────────────────────────────────────
