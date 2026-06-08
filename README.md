@@ -1,21 +1,43 @@
 # ElBruno.PresenterTimer
 
+[![NuGet](https://img.shields.io/nuget/v/ElBruno.PresenterTimer.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.PresenterTimer)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ElBruno.PresenterTimer.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.PresenterTimer)
+[![Build Status](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/dotnet-tool-publish.yml/badge.svg)](https://github.com/elbruno/ElBruno.PresenterTimer/actions/workflows/dotnet-tool-publish.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![GitHub stars](https://img.shields.io/github/stars/elbruno/ElBruno.PresenterTimer?style=social)](https://github.com/elbruno/ElBruno.PresenterTimer)
+[![Twitter Follow](https://img.shields.io/twitter/follow/elbruno?style=social)](https://twitter.com/elbruno)
+
 ![PresenterTimer demo animation](./images/PresenterTimerDemo.gif)
 
 **ElBruno.PresenterTimer** is a Windows desktop application (Session Timeline Overlay) for presenters, content creators, trainers, and speakers who need to stay on track during recordings, demos, conferences, or workshops — without constantly switching windows or checking a separate clock.
 
-The app runs in the Windows system tray and displays a subtle, always-on-top horizontal timeline overlay that shows your full session plan divided into sections. As time passes, the current section is highlighted, completed sections are visually differentiated, and configurable alerts fire when a section is almost over or the session goes into overtime.
+The app runs in the Windows system tray and displays a subtle, always-on-top overlay that shows your full session plan divided into sections. As time passes, the current section is highlighted, completed sections are visually differentiated, and configurable alerts fire when a section is almost over or the session goes into overtime.
+
+Choose between two overlay modes:
+- **Full Timeline** — horizontal bar showing all sections at a glance
+- **Mini Window** — compact window showing current section name, remaining times, and progress (resizable, transparent)
 
 **Built with:** .NET 10 · WPF · MVVM · System Tray Integration · JSON-driven session plans · Settings persistence to `%AppData%`
 
-## Features (MVP)
+## What's New
+
+- ✨ **v0.2.0 — Mini Window Overlay** — New compact overlay mode as alternative to full timeline bar
+  - Resizable, transparent window with section name and remaining times
+  - Live overlay mode switching in settings (no app restart needed)
+  - Position persistence and responsive layout
+- 🎯 **v0.1.0** — MVP release with full timeline overlay, session management, and alert system
+
+## Features
 
 - **System tray app** — minimal footprint; lives in the Windows notification area with color-coded state icon.
-- **Always-on-top overlay** — horizontal timeline bar positioned anywhere on screen, ideal for multi-monitor setups and OBS/screen-recording scenarios.
+- **Always-on-top overlays** — two display modes to choose from:
+  - **Full Timeline** — horizontal bar showing all sections at a glance (original mode)
+  - **Mini Window** — compact resizable window showing current section, remaining times, and progress bar
+- **Live mode switching** — change overlay mode in Settings without restarting the session.
 - **JSON-driven session plans** — define your session title, sections, durations, notes, colors, and warning thresholds in a simple JSON file.
 - **Live section tracking** — current section is highlighted; progress displayed across the full session.
 - **Visual state indicators** — tray icon color reflects app state: Gray (no session), Blue (loaded), Green (running), Yellow (warning), Red (overtime).
-- **Full timeline overlay** — displays session title, current/next section, elapsed/remaining times, and section progress bar.
 - **Timer controls** — start, pause, resume, reset, next/previous section, restart current section, and extend by ±1 or ±5 minutes.
 - **Configurable alerts** — section warning, section end, session end, and overtime alerts with optional audio and Windows notifications.
 - **Session preview** — review the full plan before starting.
@@ -296,7 +318,7 @@ All settings are stored in `%AppData%\ElBruno.PresenterTimer\settings.json` and 
 
 ### Overlay Layout
 
-- Overlay mode (full timeline)
+- **Overlay mode** (Full Timeline or Mini Window)
 - Position (top/bottom/left/right, custom)
 - Monitor selection
 - Width and height settings
@@ -410,12 +432,34 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Publishing (Maintainers)
 
-Packaging and publishing run in `.github/workflows/dotnet-tool-publish.yml`.
+### Automated Release Process
 
-- CI path (PR/push): restore, build, test, and `dotnet pack` for the tool package.
-- Release path (tag `v*` or manual dispatch with `publish=true`): publishes to NuGet.org using **trusted publisher** (OIDC), no API key required.
+Packaging, publishing, and GitHub release creation are fully automated via `.github/workflows/publish.yml`:
 
-Before first release, configure NuGet trusted publishing for this GitHub repository/environment (`release`).
+1. **Tag & Push** — Create and push a git tag:
+   ```bash
+   git tag -a v0.3.0 -m "Release v0.3.0: {Feature description}"
+   git push origin v0.3.0
+   ```
+
+2. **Automated Pipeline** — The workflow triggers on tag push and:
+   - ✅ Builds and tests the solution (Windows runner)
+   - ✅ Packs the NuGet tool package
+   - ✅ Publishes to NuGet.org (Ubuntu runner with trusted publisher OIDC)
+   - ✅ **Automatically creates a GitHub release** with auto-generated changelog
+
+3. **Results** — Within 2-3 minutes:
+   - 📦 Package appears on https://www.nuget.org/packages/ElBruno.PresenterTimer/
+   - 📌 Release appears on https://github.com/elbruno/ElBruno.PresenterTimer/releases/
+   - 📝 Changelog auto-generated from commit messages since last tag
+
+### Configuration
+
+Before first release, configure NuGet trusted publishing for this GitHub repository:
+- Repository Settings → Environments → Create new environment `release`
+- Add `NUGET_USER` secret with your NuGet organization name (for OIDC token exchange)
+
+No manual GitHub release creation needed — it's automatic!
 
 ---
 
